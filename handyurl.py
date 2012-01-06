@@ -3,12 +3,14 @@
 
 import tldextract
 from urlparse import urlparse
+from URLRegexTransformer import hostToSURT
 
 class handyurl(object):
     """A python port of the archive-commons org.archive.url HandyURL class
 
-    To simply the module, we add the URLParser.parse method as a classmethod,
-    which makes the URLParser class unnecessary.
+    To simplify the surt module, we add the URLParser.parse method here,
+    which makes the URLParser class unnecessary. handyurl becomes a thin
+    wrapper around python's urlparse module.
 
     Init an empty class:
     >>> h = handyurl()
@@ -16,7 +18,7 @@ class handyurl(object):
     Init with just a host:
     >>> h = handyurl(host='www.amazon.co.uk')
     """
-    DEFAULT_PORT = -1;
+    DEFAULT_PORT = None
 
     # init
     #___________________________________________________________________________
@@ -73,11 +75,16 @@ class handyurl(object):
         o = urlparse(url)
 
         scheme   = o.scheme   or None
-        hostname = o.hostname or None
-        path     = o.path     or None
         query    = o.query    or None
         fragment = o.fragment or None
         port     = o.port     or None
+
+        if 'dns' == scheme:
+            hostname = o.path or None
+            path     = None
+        else:
+            hostname = o.hostname or None
+            path     = o.path     or None
 
         h = cls(scheme = scheme,
                 host   = hostname,
@@ -87,6 +94,55 @@ class handyurl(object):
                 port   = port,
                )
         return h
+
+    # getURLString()
+    #___________________________________________________________________________
+    def getURLString(self, surt=False, public_suffix=False):
+        """Don't use this on dns urls"""
+
+        if None != self.opaque:
+			return self.opaque #wonder what this is for...
+
+        if 'dns' == self.scheme:
+            s = self.scheme + ':'   ###java version adds :// regardless of scheme
+        else:
+            s = self.scheme + '://'
+        if surt:
+            s += "("
+
+        if self.authUser:
+            s += self.authUser
+            if self.authPass:
+                s += self.authPass
+            s += '@'
+
+        hostSrc = self.host
+        if public_suffix:
+            hostSrc = self.getPublicSuffix()
+        if surt:
+            hostSrc = hostToSURT(hostSrc)
+        s += hostSrc
+
+        if self.port != self.DEFAULT_PORT:
+            s += ":%d" % self.port
+
+        if surt:
+            s += ')'
+
+        hasPath = (None != self.path) and (len(self.path) > 0)
+        if hasPath:
+            s += self.path
+        else:
+            if (None != self.query) or (None != self.hash):
+                #must have '/' with query or hash:
+                s += '/'
+
+        if None != self.query:
+            s += self.query
+        if None != self.hash:
+            s += self.hash
+
+        return s
 
     # getPublicSuffix
     #___________________________________________________________________________
