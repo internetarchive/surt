@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import tldextract
-from urlparse import urlparse
+from urlparse import urlsplit
 from URLRegexTransformer import hostToSURT
 
 class handyurl(object):
@@ -72,7 +73,16 @@ class handyurl(object):
         handyurl(scheme=dns, authUser=None, authPass=None, host=bücher.ch, port=None, path=None, query=None, hash=None, opaque=None)
         """
 
-        o = urlparse(url)
+        url = url.strip()
+        url = re.sub('[\n\r\t]', '', url)
+
+        ### DNS URLs are treated separately as opaque urls by URLParser.java
+        # However, we want to surtify dns urls as well.
+        if re.match("^(filedesc|warcinfo):.*", url):
+            return cls(opaque=url)
+
+        url = cls.addDefaultSchemeIfNeeded(url)
+        o = urlsplit(url)
 
         scheme   = o.scheme   or None
         query    = o.query    or None
@@ -95,13 +105,32 @@ class handyurl(object):
                )
         return h
 
+    # addDefaultSchemeIfNeeded()
+    #___________________________________________________________________________
+    """copied from URLParser.java"""
+    @classmethod
+    def addDefaultSchemeIfNeeded(cls, url):
+        if not url:
+            return url
+
+        ###raj: DNS URLs are treated separately as opaque urls by URLParser.java,
+        #but we want to surtify dns urls as well
+        if url.startswith('dns:'):
+            return url
+
+        if re.match("^(http|https|ftp|mms|rtsp|wais)://.*", url):
+            return url
+        else:
+            return "http://"+url
+
+
     # getURLString()
     #___________________________________________________________________________
     def getURLString(self, surt=False, public_suffix=False):
         """Don't use this on dns urls"""
 
         if None != self.opaque:
-			return self.opaque #wonder what this is for...
+			return self.opaque
 
         if 'dns' == self.scheme:
             s = self.scheme + ':'   ###java version adds :// regardless of scheme

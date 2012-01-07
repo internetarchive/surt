@@ -40,10 +40,10 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
     >>> canonicalize(handyurl.parse("dns:www.archive.org")).getURLString()
     'dns:www.archive.org'
     """
-    if host_lowercase:
+    if host_lowercase and url.host:
         url.host = url.host.lower()
 
-    if host_massage and (url.scheme != 'dns'): ###java version calls massageHost regardless of scheme
+    if host_massage and url.host and (url.scheme != 'dns'): ###java version calls massageHost regardless of scheme
         url.host = massageHost(url.host)
 
     if auth_strip_user:
@@ -52,7 +52,7 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
     elif auth_strip_pass:
         url.arthPass = None
 
-    if port_strip_default:
+    if port_strip_default and url.scheme:
         defaultPort = getDefaultPort(url.scheme)
         if url.port == defaultPort:
             url.port = handyurl.DEFAULT_PORT
