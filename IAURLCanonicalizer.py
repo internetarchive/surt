@@ -9,7 +9,7 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 import re
 from handyurl import handyurl
-from URLRegexTransformer import stripPathSessionID
+from URLRegexTransformer import stripPathSessionID, stripQuerySessionID
 
 # canonicalize()
 #_______________________________________________________________________________
@@ -17,7 +17,10 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  auth_strip_user=True, auth_strip_pass=True,
                  port_strip_default=True, path_strip_empty=False,
                  path_lowercase=True, path_strip_session_id=True,
-                 path_strip_trailing_slash_unless_empty=True):
+                 path_strip_trailing_slash_unless_empty=True,
+                 query_lowercase=True, query_strip_session_id=True,
+                 query_strip_empty=True, query_alpha_reorder=True,
+                 hash_strip=True):
     """The input url is a handyurl instance
 
     These doctests are from IAURLCanonicalizerTest.java:
@@ -70,7 +73,19 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
 
         url.path = path
 
-    #TODO canonicalize query
+    query = url.query
+    if query:
+        if '' == query and query_strip_empty:
+            query = None
+        elif len(query) > 0:
+            if query_strip_session_id:
+                query = stripQuerySessionID(query)
+            if query_lowercase:
+                query = query.lower()
+            if query_alpha_reorder:
+                query = alphaReorderQuery(query)
+
+        url.query = query
 
     return url
 
@@ -78,37 +93,37 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
 # alphaReorderQuery()
 #_______________________________________________________________________________
 def alphaReorderQuery(orig):
-    """It's a shame that we can't use urlparse.parse_qsl() for this,
-    but this function does keeps the trailing '=' if there is a query
-    arg with no value: "?foo" vs "?foo=", and we want to be bit-exact
+    """It's a shame that we can't use urlparse.parse_qsl() for this, but this
+    function does keeps the trailing '=' if there is a query arg with no value:
+    "?foo" vs "?foo=", and we want to exactly match the java version
 
     These doctests are from IAURLCanonicalizerTest.java:
 
     >>> alphaReorderQuery(None)
     >>> alphaReorderQuery("")
     ''
-    >>> alphaReorderQuery("?")
-    '?'
-    >>> alphaReorderQuery("?a")
-    '?a'
-    >>> alphaReorderQuery("?ab")
-    '?ab'
-    >>> alphaReorderQuery("?a=1")
-    '?a=1'
-    >>> alphaReorderQuery("?ab=1")
-    '?ab=1'
-    >>> alphaReorderQuery("?a=1&")
-    '?&a=1'
-    >>> alphaReorderQuery("?a=1&b=1")
-    '?a=1&b=1'
-    >>> alphaReorderQuery("?b=1&a=1")
-    '?a=1&b=1'
-    >>> alphaReorderQuery("?a=a&a=a")
-    '?a=a&a=a'
-    >>> alphaReorderQuery("?a=b&a=a")
-    '?a=a&a=b'
-    >>> alphaReorderQuery("?b=b&a=b&b=a&a=a")
-    '?a=a&a=b&b=a&b=b'
+    >>> alphaReorderQuery("")
+    ''
+    >>> alphaReorderQuery("a")
+    'a'
+    >>> alphaReorderQuery("ab")
+    'ab'
+    >>> alphaReorderQuery("a=1")
+    'a=1'
+    >>> alphaReorderQuery("ab=1")
+    'ab=1'
+    >>> alphaReorderQuery("a=1&")
+    '&a=1'
+    >>> alphaReorderQuery("a=1&b=1")
+    'a=1&b=1'
+    >>> alphaReorderQuery("b=1&a=1")
+    'a=1&b=1'
+    >>> alphaReorderQuery("a=a&a=a")
+    'a=a&a=a'
+    >>> alphaReorderQuery("a=b&a=a")
+    'a=a&a=b'
+    >>> alphaReorderQuery("b=b&a=b&b=a&a=a")
+    'a=a&a=b&b=a&b=b'
     """
 
 
@@ -118,13 +133,11 @@ def alphaReorderQuery(orig):
     if len(orig) <= 1:
         return orig
 
-    orig = orig[1:] #remove leading '?'
-
     args = orig.split("&")
     qas = [tuple(arg.split('=', 1)) for arg in args]
     qas.sort()
 
-    s = '?'
+    s = ''
     for t in qas:
         if 1 == len(t):
             s += t[0] + '&'

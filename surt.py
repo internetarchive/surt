@@ -8,6 +8,7 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 from handyurl import handyurl
 from URLRegexTransformer import hostToSURT
 from IAURLCanonicalizer import canonicalize
+#NOTE: the java version using a different canonicalizer!
 
 # surt()
 #_______________________________________________________________________________
