@@ -69,7 +69,7 @@ class handyurl(object):
         handyurl(scheme=http, authUser=None, authPass=None, host=bücher.ch, port=8080, path=None, query=None, hash=foo, opaque=None)
 
         >>> handyurl.parse("dns:bücher.ch")
-        handyurl(scheme=dns, authUser=None, authPass=None, host=None, port=None, path=bücher.ch, query=None, hash=None, opaque=None)
+        handyurl(scheme=dns, authUser=None, authPass=None, host=bücher.ch, port=None, path=None, query=None, hash=None, opaque=None)
         """
 
         o = urlparse(url)
@@ -138,9 +138,9 @@ class handyurl(object):
                 s += '/'
 
         if None != self.query:
-            s += self.query
+            s += '?' + self.query
         if None != self.hash:
-            s += self.hash
+            s += '#' + self.hash
 
         return s
 
