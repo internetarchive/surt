@@ -26,7 +26,8 @@ class handyurl(object):
     if the URL that was parsed originally had unnecessary delimiters
     (for example, a ? with an empty query; the RFC states that these are equivalent)."
     We want the url http://www.google.com/? to work, since there is a test for
-    it in the GoogleURLCanonicalizer class.
+    it in the GoogleURLCanonicalizer class. Note, however, the IAURLCanonicalizer
+    class strips empty queries.
     """
     DEFAULT_PORT = None
 

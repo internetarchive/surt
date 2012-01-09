@@ -84,8 +84,10 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                 query = query.lower()
             if query_alpha_reorder:
                 query = alphaReorderQuery(query)
-
         url.query = query
+    else:
+        if query_strip_empty:
+            url.last_delimiter = None
 
     return url
 

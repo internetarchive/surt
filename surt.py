@@ -7,8 +7,7 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 from handyurl import handyurl
 from URLRegexTransformer import hostToSURT
-from IAURLCanonicalizer import canonicalize
-#NOTE: the java version using a different canonicalizer!
+from DefaultIAURLCanonicalizer import canonicalize
 
 # surt()
 #_______________________________________________________________________________
@@ -33,6 +32,8 @@ def surt(url):
     >>> surt("dns:archive.org")
     'org,archive)'
 
+    >>> surt("http://www.archive.org/")
+    'org,archive)/'
     >>> surt("http://archive.org/")
     'org,archive)/'
     >>> surt("http://archive.org/goo/")
