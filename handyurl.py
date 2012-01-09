@@ -18,6 +18,15 @@ class handyurl(object):
 
     Init with just a host:
     >>> h = handyurl(host='www.amazon.co.uk')
+
+    This version of handyurl contains a field for last_delimiter, to allow
+    a url to roundtrip through this class without modification. From the
+    urlparse docs:
+    "This [roundtripping] may result in a slightly different, but equivalent URL,
+    if the URL that was parsed originally had unnecessary delimiters
+    (for example, a ? with an empty query; the RFC states that these are equivalent)."
+    We want the url http://www.google.com/? to work, since there is a test for
+    it in the GoogleURLCanonicalizer class.
     """
     DEFAULT_PORT = None
 
@@ -25,7 +34,7 @@ class handyurl(object):
     #___________________________________________________________________________
     def __init__(self, scheme=None, authUser=None, authPass=None,
                  host=None, port=DEFAULT_PORT, path=None,
-                 query=None, hash=None, opaque=None):
+                 query=None, hash=None, opaque=None, last_delimiter=None):
         self.scheme   = scheme
         self.authUser = authUser
         self.authPass = authPass
@@ -35,6 +44,7 @@ class handyurl(object):
         self.query    = query
         self.hash     = hash
         self.opaque   = opaque
+        self.last_delimiter = last_delimiter #added in python version
 
     # parse() classmethod
     #___________________________________________________________________________
@@ -89,6 +99,11 @@ class handyurl(object):
         fragment = o.fragment or None
         port     = o.port     or None
 
+        """One more special-case for dns urls. From the docs:
+        Following the syntax specifications in RFC 1808, urlparse recognizes
+        a netloc only if it is properly introduced by ‘//’. Otherwise the input
+        is presumed to be a relative URL and thus to start with a path component.
+        """
         if 'dns' == scheme:
             hostname = o.path or None
             path     = None
@@ -103,6 +118,11 @@ class handyurl(object):
                 hash   = fragment,
                 port   = port,
                )
+
+        #See note at top about last_delimiter
+        if url.endswith('?') and None == h.query:
+            h.last_delimiter = '?'
+
         return h
 
     # addDefaultSchemeIfNeeded()
@@ -127,14 +147,13 @@ class handyurl(object):
     # getURLString()
     #___________________________________________________________________________
     def getURLString(self, surt=False, public_suffix=False):
-        """Don't use this on dns urls"""
 
         if None != self.opaque:
 			return self.opaque
 
         if 'dns' == self.scheme:
             s = self.scheme + ':'   ###java version adds :// regardless of scheme
-        else:
+        else:                       ###java version uses opaque type for dns urls, but this version supports dns urls
             s = self.scheme + '://'
         if surt:
             s += "("
@@ -170,6 +189,9 @@ class handyurl(object):
             s += '?' + self.query
         if None != self.hash:
             s += '#' + self.hash
+
+        if None != self.last_delimiter:
+            s += self.last_delimiter
 
         return s
 
