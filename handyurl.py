@@ -86,6 +86,8 @@ class handyurl(object):
         ###From Tymm:
         >>> handyurl.parse("http:////////////////www.vikings.com")
         handyurl(scheme=http, authUser=None, authPass=None, host=www.vikings.com, port=None, path=/, query=None, hash=None, opaque=None)
+        >>> handyurl.parse("http://https://order.1and1.com")
+        handyurl(scheme=https, authUser=None, authPass=None, host=order.1and1.com, port=None, path=None, query=None, hash=None, opaque=None)
         """
 
         url = url.strip()
@@ -97,6 +99,9 @@ class handyurl(object):
             return cls(opaque=url)
 
         url = cls.addDefaultSchemeIfNeeded(url)
+
+        #From Tymm: deal with http://https/order.1and1.com
+        url = re.sub('^(https?://)+', r'\1', url)
 
         """The java code seems to use this regex:
         re.compile("^(([a-zA-Z][a-zA-Z0-9\+\-\.]*):)?((//([^/?#]*))?([^?#]*)(\?([^#]*))?)?(#(.*))?")
