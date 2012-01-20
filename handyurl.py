@@ -82,6 +82,10 @@ class handyurl(object):
 
         >>> handyurl.parse("dns:bücher.ch")
         handyurl(scheme=dns, authUser=None, authPass=None, host=bücher.ch, port=None, path=None, query=None, hash=None, opaque=None)
+
+        ###From Tymm:
+        >>> handyurl.parse("http:////////////////www.vikings.com")
+        handyurl(scheme=http, authUser=None, authPass=None, host=www.vikings.com, port=None, path=/, query=None, hash=None, opaque=None)
         """
 
         url = url.strip()
@@ -93,6 +97,10 @@ class handyurl(object):
             return cls(opaque=url)
 
         url = cls.addDefaultSchemeIfNeeded(url)
+
+        """The java code seems to use this regex:
+        re.compile("^(([a-zA-Z][a-zA-Z0-9\+\-\.]*):)?((//([^/?#]*))?([^?#]*)(\?([^#]*))?)?(#(.*))?")
+        """
         o = urlsplit(url)
 
         scheme   = o.scheme   or None
@@ -100,7 +108,7 @@ class handyurl(object):
         fragment = o.fragment or None
         port     = o.port     or None
 
-        """One more special-case for dns urls. From the docs:
+        """One more special-case for dns urls or broken http urls. From the docs:
         Following the syntax specifications in RFC 1808, urlparse recognizes
         a netloc only if it is properly introduced by ‘//’. Otherwise the input
         is presumed to be a relative URL and thus to start with a path component.
@@ -111,6 +119,13 @@ class handyurl(object):
         else:
             hostname = o.hostname or None
             path     = o.path     or None
+
+        if scheme.startswith('http'):
+            #deal with "http:////////////////www.vikings.com"
+            if hostname is None and path is not None:
+                parts    = path.lstrip('/').partition('/')
+                hostname = parts[0]
+                path     = '/'+parts[2]
 
         h = cls(scheme = scheme,
                 host   = hostname,
