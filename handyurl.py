@@ -51,43 +51,43 @@ class handyurl(object):
     #___________________________________________________________________________
     @classmethod
     def parse(cls, url):
-        """This method was in the java URLParser class, but we don't need
+        u"""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
         These doctests come from URLParserTest.java:
 
-        >>> handyurl.parse("http://www.archive.org/index.html#foo")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=None, path=/index.html, query=None, hash=foo, opaque=None)
+        >>> handyurl.parse("http://www.archive.org/index.html#foo").geturl()
+        'http://www.archive.org/index.html#foo'
 
-        >>> handyurl.parse("http://www.archive.org/")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=None, path=/, query=None, hash=None, opaque=None)
+        >>> handyurl.parse("http://www.archive.org/").geturl()
+        'http://www.archive.org/'
 
-        >>> handyurl.parse("http://www.archive.org")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=None, path=None, query=None, hash=None, opaque=None)
+        >>> handyurl.parse("http://www.archive.org").geturl()
+        'http://www.archive.org'
 
-        >>> handyurl.parse("http://www.archive.org?")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=None, path=None, query=None, hash=None, opaque=None)
+        >>> handyurl.parse("http://www.archive.org?").geturl()
+        'http://www.archive.org?'
 
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?query#foo")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=8080, path=/index.html, query=query, hash=foo, opaque=None)
+        >>> handyurl.parse("http://www.archive.org:8080/index.html?query#foo").geturl()
+        'http://www.archive.org:8080/index.html?query#foo'
 
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?#foo")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=8080, path=/index.html, query=None, hash=foo, opaque=None)
+        >>> handyurl.parse("http://www.archive.org:8080/index.html?#foo").geturl()
+        'http://www.archive.org:8080/index.html#foo'
 
-        >>> handyurl.parse("http://www.archive.org:8080?#foo")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.archive.org, port=8080, path=None, query=None, hash=foo, opaque=None)
+        >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
+        'http://www.archive.org:8080/#foo'
 
-        >>> handyurl.parse("http://bücher.ch:8080?#foo")
-        handyurl(scheme=http, authUser=None, authPass=None, host=bücher.ch, port=8080, path=None, query=None, hash=foo, opaque=None)
+        >>> print handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
+        http://b\xfccher.ch:8080/#foo
 
-        >>> handyurl.parse("dns:bücher.ch")
-        handyurl(scheme=dns, authUser=None, authPass=None, host=bücher.ch, port=None, path=None, query=None, hash=None, opaque=None)
+        >>> print handyurl.parse(u"dns:bücher.ch").geturl()
+        dns:b\xfccher.ch
 
         ###From Tymm:
-        >>> handyurl.parse("http:////////////////www.vikings.com")
-        handyurl(scheme=http, authUser=None, authPass=None, host=www.vikings.com, port=None, path=/, query=None, hash=None, opaque=None)
-        >>> handyurl.parse("http://https://order.1and1.com")
-        handyurl(scheme=https, authUser=None, authPass=None, host=order.1and1.com, port=None, path=None, query=None, hash=None, opaque=None)
+        >>> handyurl.parse("http:////////////////www.vikings.com").geturl()
+        'http://www.vikings.com/'
+        >>> handyurl.parse("http://https://order.1and1.com").geturl()
+        'https://order.1and1.com'
         """
 
         url = url.strip()
@@ -164,6 +164,13 @@ class handyurl(object):
         else:
             return "http://"+url
 
+    # geturl()
+    #___________________________________________________________________________
+    def geturl(self):
+        """urlparse.ParseResult has a geturl() method, so we have one too.
+        Nicer than typing the java method name!
+        """
+        return self.getURLString()
 
     # getURLString()
     #___________________________________________________________________________
@@ -273,8 +280,11 @@ class handyurl(object):
 
     # repr
     #___________________________________________________________________________
-    def __repr__(self):
-        return """handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s, opaque=%s)""" % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash, self.opaque)
+    # commented out because of http://bugs.python.org/issue5876
+    # "__repr__ returning unicode doesn't work when called implicitly"
+    #def __repr__(self):
+    #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s, opaque=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash, self.opaque)
+
 
 
 # main()
