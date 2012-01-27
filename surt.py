@@ -44,6 +44,10 @@ def surt(url):
     'org,archive)/goo?a&b'
     >>> surt("http://archive.org/goo/?a=2&b&a=1")
     'org,archive)/goo?a=1&a=2&b'
+
+    PHP session id:
+    >>> surt("http://archive.org/index.php?PHPSESSID=0123456789abcdefghijklemopqrstuv&action=profile;u=4221")
+    'org,archive)/index.php?action=profile;u=4221'
     """
 
     if not url:

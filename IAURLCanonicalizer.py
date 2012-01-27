@@ -79,7 +79,9 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
             query = None
         elif len(query) > 0:
             if query_strip_session_id:
-                query = stripQuerySessionID(query)
+                #This function expects the query to start with a '?'
+                query = stripQuerySessionID('?'+query)
+                query = query[1:] #now strip off '?' that we just added
             if query_lowercase:
                 query = query.lower()
             if query_alpha_reorder:
