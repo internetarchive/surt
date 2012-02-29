@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """This is a python port of GoogleURLCanonicalizer.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/GoogleURLCanonicalizer.java?view=markup
@@ -73,6 +74,13 @@ def canonicalize(url):
     #>>> canonicalize(handyurl.parse("http://\u0001\u0080.com/")).getURLString()
     #'http://%01%80.com/'
 
+    #Add these unicode tests:
+    >>> print canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString()
+    http://xn--bcher-kva.ch:8080/
+    >>> url = '☃.com'.decode('utf-8') #doctest has trouble with utf-8 encoding
+    >>> print canonicalize(handyurl.parse(url)).getURLString()
+    http://xn--n3h.com/
+
     >>> canonicalize(handyurl.parse("http://notrailingslash.com")).getURLString()
     'http://notrailingslash.com/'
     >>> canonicalize(handyurl.parse("http://www.gotaport.com:1234/")).getURLString()
@@ -104,7 +112,13 @@ def canonicalize(url):
     hostE = unescapeRepeatedly(url.host)
     host = None
     try:
-        host = encodings.idna.ToASCII(hostE)
+        # Note: I copied the use of the ToASCII(hostE) from
+        # the java code. This function implements RFC3490, which
+        # requires that each component of the hostname (i.e. each label)
+        # be encodeced separately, and doesn't work correctly with
+        # full hostnames. So use 'idna' encoding instead.
+        #host = encodings.idna.ToASCII(hostE)
+        host = hostE.encode('idna')
     except ValueError:
         host = hostE
 
