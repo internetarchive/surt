@@ -23,3 +23,5 @@ I would have never written this module.
 
 This module depends on the `tldextract` module to query the Public Suffix
 List. `tldextract` can be installed via `pip`
+
+[![Build Status](https://secure.travis-ci.org/rajbot/surt.png?branch=master)](http://travis-ci.org/rajbot/surt)
