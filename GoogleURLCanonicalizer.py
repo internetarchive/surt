@@ -70,9 +70,12 @@ def canonicalize(url):
     >>> canonicalize(handyurl.parse("http://evil.com/foo?bar;")).getURLString()
     'http://evil.com/foo?bar;'
 
-    #This test doesn't work in the python version.
-    #>>> canonicalize(handyurl.parse("http://\u0001\u0080.com/")).getURLString()
-    #'http://%01%80.com/'
+    #This test case differs from the Java version. The Jave version returns
+    #'http://%01%80.com/' for this case. In the case that idna/punycode encoding
+    #of a hostname is not possible, the python version encodes unicode domains
+    #as utf-8 before percent encoding, so we get 'http://%01%C2%80.com/'
+    >>> print canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString()
+    http://%01%C2%80.com/
 
     #Add these unicode tests:
     >>> print canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString()
@@ -237,6 +240,12 @@ def minimalEscape(input):
 def escapeOnce(input):
     """escape everything outside of 32-128, expect #"""
     if input:
+        # If input is a unicode type, we need to chose an encoding before
+        # percent encoding, since different encodings of the same unicode
+        # characters will result in different surts.
+        # We will use utf-8 for consistency.
+        if isinstance(input, unicode):
+            input = input.encode('utf-8')
         return quote(input, """!"$&'()*+,-./:;<=>?@[\]^_`{|}~""")
     else:
         return input
