@@ -3,4 +3,4 @@ python:
   - "2.6"
   - "2.7"
 install: pip install tldextract --use-mirrors
-script: python surt.py -v
+script: python surt/surt.py -v
