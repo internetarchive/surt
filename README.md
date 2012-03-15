@@ -6,6 +6,11 @@ Usage:
     >>> surt("http://archive.org/goo/?a=2&b&a=1")
     'org,archive)/goo?a=1&a=2&b'
 
+Installation:
+
+    pip install git+git://github.com/rajbot/surt#egg=surt
+
+
 More information about SURTs:
 http://crawler.archive.org/articles/user_manual/glossary.html#surt
 
