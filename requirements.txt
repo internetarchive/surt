@@ -1,1 +1,2 @@
+pytest
 tldextract==1.0
