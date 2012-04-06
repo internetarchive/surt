@@ -202,6 +202,11 @@ def attemptIPFormats(host):
     >>> attemptIPFormats("10.0.258") #java version returns null, ours returns the correct ipv4
     '10.0.1.2'
     >>> attemptIPFormats("1.2.3.256") #returns None
+
+    ARC files from the wayback machine's liveweb proxy contain numeric
+    hostnames > 2^32 for some reason. We'll copy the behavior of the java code.
+    >>> attemptIPFormats("39024579298")
+    '22.11.210.226'
     """
 
     OCTAL_IP   = re.compile("^(0[0-7]*)(\.[0-7]+)?(\.[0-7]+)?(\.[0-7]+)?$")
@@ -211,7 +216,8 @@ def attemptIPFormats(host):
         return None
 
     if re.match("^\d+$", host):
-        return socket.inet_ntoa(struct.pack('>L', int(host)))
+        #mask hostname to lower four bytes to workaround issue with liveweb arc files
+        return socket.inet_ntoa(struct.pack('>L', int(host) & 0xffffffff))
     else:
         m = DECIMAL_IP.match(host)
         if m:
