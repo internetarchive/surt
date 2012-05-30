@@ -48,6 +48,10 @@ def surt(url):
     PHP session id:
     >>> surt("http://archive.org/index.php?PHPSESSID=0123456789abcdefghijklemopqrstuv&action=profile;u=4221")
     'org,archive)/index.php?action=profile;u=4221'
+
+    WHOIS url:
+    >>> surt("whois://whois.isoc.org.il/shaveh.co.il")
+    'whois://whois.isoc.org.il/shaveh.co.il'
     """
 
     if not url:
@@ -61,6 +65,9 @@ def surt(url):
 
     if url.startswith("dns:"):
         return hostToSURT(url[4:]) + ')'
+
+    if url.startswith("whois://"):
+        return url
 
     hurl = canonicalize(handyurl.parse(url))
     key  = hurl.getURLString(surt=True)
