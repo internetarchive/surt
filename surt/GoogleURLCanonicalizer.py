@@ -223,7 +223,7 @@ def attemptIPFormats(host):
         if m:
             try:
                 return socket.gethostbyname_ex(host)[2][0]
-            except socket.gaierror:
+            except (socket.gaierror, socket.herror):
                 return None
         else:
             m = OCTAL_IP.match(host)
