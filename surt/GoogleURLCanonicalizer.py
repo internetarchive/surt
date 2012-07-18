@@ -70,7 +70,7 @@ def canonicalize(url):
     >>> canonicalize(handyurl.parse("http://evil.com/foo?bar;")).getURLString()
     'http://evil.com/foo?bar;'
 
-    #This test case differs from the Java version. The Jave version returns
+    #This test case differs from the Java version. The Java version returns
     #'http://%01%80.com/' for this case. If idna/punycode encoding of a hostname
     #is not possible, the python version encodes unicode domains as utf-8 before
     #percent encoding, so we get 'http://%01%C2%80.com/'
@@ -83,6 +83,10 @@ def canonicalize(url):
     >>> url = '☃.com'.decode('utf-8') #doctest has trouble with utf-8 encoding
     >>> print canonicalize(handyurl.parse(url)).getURLString()
     http://xn--n3h.com/
+
+    #Add these percent-encoded unicode tests
+    >>> canonicalize(handyurl.parse("http://www.t%EF%BF%BD%04.82.net/")).getURLString()
+    'http://www.t%EF%BF%BD%04.82.net/'
 
     >>> canonicalize(handyurl.parse("http://notrailingslash.com")).getURLString()
     'http://notrailingslash.com/'
@@ -113,6 +117,17 @@ def canonicalize(url):
         url.query = minimalEscape(url.query)
 
     hostE = unescapeRepeatedly(url.host)
+
+    # if the host was an ascii string of percent-encoded bytes that represent
+    # non-ascii unicode chars, then promote hostE from str to unicode.
+    # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
+    if isinstance(hostE, str):
+        try:
+            hostE.decode('ascii')
+        except UnicodeDecodeError:
+            hostE = hostE.decode('utf-8', 'ignore')
+
+
     host = None
     try:
         # Note: I copied the use of the ToASCII(hostE) from
