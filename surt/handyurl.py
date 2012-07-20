@@ -88,8 +88,11 @@ class handyurl(object):
         'http://www.vikings.com/'
         >>> handyurl.parse("http://https://order.1and1.com").geturl()
         'https://order.1and1.com'
-        """
 
+        ###From Common Crawl, host ends with ':' without a port number
+        >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
+        'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
+        """
         url = url.strip()
         url = re.sub('[\n\r\t]', '', url)
 
@@ -111,6 +114,10 @@ class handyurl(object):
         scheme   = o.scheme   or None
         query    = o.query    or None
         fragment = o.fragment or None
+
+        """Deal with hostnames that end with ':' without being followed by a port number"""
+        if o.netloc.endswith(':'):
+            o = o._replace(netloc=o.netloc.rstrip(':'))
         port     = o.port     or None
 
         """One more special-case for dns urls or broken http urls. From the docs:
