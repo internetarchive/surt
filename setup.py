@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 setup(name='surt',
       version='0.2',
       author='rajbot',
