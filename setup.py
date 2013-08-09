@@ -6,7 +6,7 @@ setup(name='surt',
       description='Sort-friendly URI Reordering Transform (SURT) python package.',
       long_description=open('README.md').read(),
       url='https://github.com/rajbot/surt',
-      requires=[
+      install_requires=[
           'tldextract',
       ],
       provides=[ 'surt' ],

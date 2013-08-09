@@ -8,6 +8,10 @@ Usage:
 
 Installation:
 
+    pip install surt
+
+Or install the dev version from git:
+
     pip install git+git://github.com/rajbot/surt#egg=surt
 
 
