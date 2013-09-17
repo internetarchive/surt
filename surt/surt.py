@@ -11,7 +11,7 @@ from DefaultIAURLCanonicalizer import canonicalize
 
 # surt()
 #_______________________________________________________________________________
-def surt(url):
+def surt(url, surtMode=True, includeScheme=False):
     """
     These doctests are from WaybackURLKeyMakerTest.java
 
@@ -70,11 +70,14 @@ def surt(url):
         return url
 
     hurl = canonicalize(handyurl.parse(url))
-    key  = hurl.getURLString(surt=True)
+    key  = hurl.getURLString(surt=surtMode, includeScheme=includeScheme)
+
+    if not surtMode:
+      return key
 
     parenIdx = key.find('(')
-    if -1 == parenIdx:
-        return url #something very wrong
+    #if -1 == parenIdx:
+    #    return url #something very wrong
 
     return key[parenIdx+1:]
 
