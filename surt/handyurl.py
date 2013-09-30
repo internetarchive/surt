@@ -181,22 +181,17 @@ class handyurl(object):
 
     # getURLString()
     #___________________________________________________________________________
-    def getURLString(self, surt=False, includeScheme=True, public_suffix=False):
+    def getURLString(self, surt=False, public_suffix=False):
 
         if None != self.opaque:
 			return self.opaque
 
-        # Option to include the scheme
-        if includeScheme:
-          if 'dns' == self.scheme:
-              s = self.scheme + ':'   ###java version adds :// regardless of scheme
-          else:                       ###java version uses opaque type for dns urls, but this version supports dns urls
-              s = self.scheme + '://'
-
-          if surt:
-              s += "("
-        else:
-          s = ''
+        if 'dns' == self.scheme:
+            s = self.scheme + ':'   ###java version adds :// regardless of scheme
+        else:                       ###java version uses opaque type for dns urls, but this version supports dns urls
+            s = self.scheme + '://'
+        if surt:
+            s += "("
 
         if self.authUser:
             s += self.authUser
