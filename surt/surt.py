@@ -52,6 +52,10 @@ def surt(url):
     WHOIS url:
     >>> surt("whois://whois.isoc.org.il/shaveh.co.il")
     'whois://whois.isoc.org.il/shaveh.co.il'
+
+    Yahoo web bug. See https://github.com/internetarchive/surt/issues/1
+    >>> surt('http://visit.webhosting.yahoo.com/visit.gif?&r=http%3A//web.archive.org/web/20090517140029/http%3A//anthonystewarthead.electric-chi.com/&b=Netscape%205.0%20%28Windows%3B%20en-US%29&s=1366x768&o=Win32&c=24&j=true&v=1.2')
+    'com,yahoo,webhosting,visit)/visit.gif?&b=netscape%205.0%20(windows;%20en-us)&c=24&j=true&o=win32&r=http://web.archive.org/web/20090517140029/http://anthonystewarthead.electric-chi.com/&s=1366x768&v=1.2'
     """
 
     if not url:
