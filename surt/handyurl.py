@@ -203,7 +203,7 @@ class handyurl(object):
     def getURLString(self, surt=False, public_suffix=False):
 
         if None != self.opaque:
-			return self.opaque
+            return self.opaque
 
         if 'dns' == self.scheme:
             s = self.scheme + ':'   ###java version adds :// regardless of scheme
