@@ -39,7 +39,7 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  path_strip_trailing_slash_unless_empty=True,
                  query_lowercase=True, query_strip_session_id=True,
                  query_strip_empty=True, query_alpha_reorder=True,
-                 hash_strip=True):
+                 hash_strip=True, **_ignored):
     """The input url is a handyurl instance
 
     These doctests are from IAURLCanonicalizerTest.java:
