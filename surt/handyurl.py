@@ -70,7 +70,7 @@ class handyurl(object):
     #___________________________________________________________________________
     @classmethod
     def parse(cls, url):
-        u"""This method was in the java URLParser class, but we don't need
+        r"""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
         These doctests come from URLParserTest.java:
@@ -96,11 +96,11 @@ class handyurl(object):
         >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
         'http://www.archive.org:8080/#foo'
 
-        >>> print handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
-        http://b\xfccher.ch:8080/#foo
+        >>> handyurl.parse(u"http://b\xfccher.ch:8080?#foo").geturl()
+        u'http://b\xfccher.ch:8080/#foo'
 
-        >>> print handyurl.parse(u"dns:bücher.ch").geturl()
-        dns:b\xfccher.ch
+        >>> handyurl.parse(u"dns:b\xfccher.ch").geturl()
+        u'dns:b\xfccher.ch'
 
         ###From Tymm:
         >>> handyurl.parse("http:////////////////www.vikings.com").geturl()
