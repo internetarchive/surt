@@ -48,7 +48,7 @@ class CompositeCanonicalizer(object):
 
 # surt()
 #_______________________________________________________________________________
-def surt(url, canonicalizer=None):
+def surt(url, canonicalizer=None, **options):
     """
     These doctests are from WaybackURLKeyMakerTest.java
 
@@ -82,6 +82,16 @@ def surt(url, canonicalizer=None):
     >>> surt("http://archive.org/goo/?a=2&b&a=1")
     'org,archive)/goo?a=1&a=2&b'
 
+    # trailing comma mode
+    >>> surt("http://archive.org/goo/?a=2&b&a=1", trailing_comma=True)
+    'org,archive,)/goo?a=1&a=2&b'
+
+    >>> surt("dns:archive.org", trailing_comma=True)
+    'org,archive,)'
+
+    >>> surt("warcinfo:foo.warc.gz", trailing_comma=True)
+    'warcinfo:foo.warc.gz'
+
     PHP session id:
     >>> surt("http://archive.org/index.php?PHPSESSID=0123456789abcdefghijklemopqrstuv&action=profile;u=4221")
     'org,archive)/index.php?action=profile;u=4221'
@@ -95,7 +105,7 @@ def surt(url, canonicalizer=None):
     'com,yahoo,webhosting,visit)/visit.gif?&b=netscape%205.0%20(windows;%20en-us)&c=24&j=true&o=win32&r=http://web.archive.org/web/20090517140029/http://anthonystewarthead.electric-chi.com/&s=1366x768&v=1.2'
 
     Simple customization:
-    >>> surt("http://www.example.com/", canonicalizer=lambda x: x)
+    >>> surt("http://www.example.com/", canonicalizer=lambda x, **opts: x)
     'com,example,www)/'
     """
 
@@ -109,7 +119,11 @@ def surt(url, canonicalizer=None):
         return url
 
     if url.startswith("dns:"):
-        return hostToSURT(url[4:]) + ')'
+        res = hostToSURT(url[4:])
+        if options.get('trailing_comma'):
+            res += ','
+        res += ')'
+        return res
 
     if url.startswith("whois://"):
         return url
@@ -122,9 +136,12 @@ def surt(url, canonicalizer=None):
         elif (not hasattr(canonicalizer, '__call__') and
               hasattr(canonicalizer, 'canonicalize')):
             canonicalizer = canonicalizer.canonicalize
-            
-    hurl = canonicalizer(handyurl.parse(url))
-    key  = hurl.getURLString(surt=True)
+
+    if 'surt' not in options:
+        options['surt'] = True
+
+    hurl = canonicalizer(handyurl.parse(url), **options)
+    key  = hurl.getURLString(**options)
 
     parenIdx = key.find('(')
     if -1 == parenIdx:

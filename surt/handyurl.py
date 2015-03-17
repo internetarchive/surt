@@ -200,7 +200,11 @@ class handyurl(object):
 
     # getURLString()
     #___________________________________________________________________________
-    def getURLString(self, surt=False, public_suffix=False):
+    def getURLString(self,
+                     surt=False,
+                     public_suffix=False,
+                     trailing_comma=False,
+                     **options):
 
         if None != self.opaque:
             return self.opaque
@@ -229,6 +233,8 @@ class handyurl(object):
             s += ":%d" % self.port
 
         if surt:
+            if trailing_comma:
+                s += ','
             s += ')'
 
         hasPath = (None != self.path) and (len(self.path) > 0)
