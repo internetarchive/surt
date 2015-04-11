@@ -1,8 +1,26 @@
+# vim: set sw=4 et:
+#
+# tox approach stolen from
+# https://github.com/pypa/pip/blob/abdb597dbfb51b21cc76c1cff068b72c80f3a77d/.travis.yml
+#
+
 language: python
-python:
-  - "2.6"
-  - "2.7"
-install: pip install -r requirements.txt
-script:
-  - py.test --doctest-modules -v surt/
-  - pylint --disable=all --enable=W0312 --reports=n surt/
+
+env:
+    - TOXENV=py26
+    - TOXENV=py27
+    - TOXENV=py32
+    - TOXENV=py33
+    - TOXENV=py34
+
+before_install:
+    - sudo apt-get update
+    - pip install coveralls --use-mirrors
+
+before_script:
+    - pip install tox
+
+script: tox
+
+#after_success:
+    #coveralls

@@ -27,16 +27,15 @@ The doctests are copied from GoogleURLCanonicalizerTest.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/test/java/org/archive/url/GoogleURLCanonicalizerTest.java?view=markup
 """
 
+from __future__ import absolute_import
+
 import re
 import struct
 import socket
 import encodings.idna
 import six
 
-try:  #pragma: no cover
-    from handyurl import handyurl
-except ImportError:  #pragma: no cover
-    from surt.handyurl import handyurl
+from surt.handyurl import handyurl
 
 from six.moves.urllib.parse import quote, unquote
 

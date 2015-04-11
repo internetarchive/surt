@@ -20,15 +20,14 @@
 #
 #     The surt source is hosted at https://github.com/internetarchive/surt
 
+from __future__ import absolute_import
+
 import re
 import tldextract
 
 from six.moves.urllib.parse import urlsplit
 
-try:  #pragma: no cover
-    from URLRegexTransformer import hostToSURT
-except ImportError:  #pragma: no cover
-    from surt.URLRegexTransformer import hostToSURT
+from surt.URLRegexTransformer import hostToSURT
 
 class handyurl(object):
     """A python port of the archive-commons org.archive.url HandyURL class
