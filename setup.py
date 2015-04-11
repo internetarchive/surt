@@ -25,6 +25,7 @@ setup(name='surt',
       long_description=open('README.md').read(),
       url='https://github.com/rajbot/surt',
       install_requires=[
+          'six',
           'tldextract',
       ],
       provides=[ 'surt' ],

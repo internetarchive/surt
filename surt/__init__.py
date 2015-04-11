@@ -25,8 +25,13 @@ The original java version is here:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/
 """
 
-from .handyurl import handyurl
-from .surt import surt
+try:  #pragma: no cover
+    from handyurl import handyurl
+    from surt import surt
+except ImportError:  #pragma: no cover
+    from surt.handyurl import handyurl
+    from surt.surt import surt
+
 
 __all__= [
     'handyurl',

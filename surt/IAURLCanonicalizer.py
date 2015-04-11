@@ -27,8 +27,13 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 """
 
 import re
-from handyurl import handyurl
-from URLRegexTransformer import stripPathSessionID, stripQuerySessionID
+
+try:  #pragma: no cover
+    from handyurl import handyurl
+    from URLRegexTransformer import stripPathSessionID, stripQuerySessionID
+except ImportError:  #pragma: no cover
+    from surt.handyurl import handyurl
+    from surt.URLRegexTransformer import stripPathSessionID, stripQuerySessionID
 
 # canonicalize()
 #_______________________________________________________________________________

@@ -24,9 +24,16 @@
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/WaybackURLKeyMaker.java?view=markup
 """
 
-from handyurl import handyurl
-from URLRegexTransformer import hostToSURT
-import DefaultIAURLCanonicalizer
+try:  #pragma: no cover
+    from handyurl import handyurl
+    from URLRegexTransformer import hostToSURT
+
+    import DefaultIAURLCanonicalizer
+except ImportError:  #pragma: no cover
+    from surt.handyurl import handyurl
+    from surt.URLRegexTransformer import hostToSURT
+
+    import surt.DefaultIAURLCanonicalizer as DefaultIAURLCanonicalizer
 
 class CompositeCanonicalizer(object):
     def __init__(self, canonicalizers):

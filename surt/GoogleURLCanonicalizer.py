@@ -31,9 +31,14 @@ import re
 import struct
 import socket
 import encodings.idna
-from handyurl import handyurl
-from urllib import quote, unquote
+import six
 
+try:  #pragma: no cover
+    from handyurl import handyurl
+except ImportError:  #pragma: no cover
+    from surt.handyurl import handyurl
+
+from six.moves.urllib.parse import quote, unquote
 
 # unescapeRepeatedly()
 #_______________________________________________________________________________
@@ -93,14 +98,14 @@ def canonicalize(url, **_ignored):
     #'http://%01%80.com/' for this case. If idna/punycode encoding of a hostname
     #is not possible, the python version encodes unicode domains as utf-8 before
     #percent encoding, so we get 'http://%01%C2%80.com/'
-    >>> print canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString()
+    >>> print(canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString())
     http://%01%C2%80.com/
 
     #Add these unicode tests:
-    >>> print canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString()
+    >>> print(canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString())
     http://xn--bcher-kva.ch:8080/
-    >>> url = '☃.com'.decode('utf-8') #doctest has trouble with utf-8 encoding
-    >>> print canonicalize(handyurl.parse(url)).getURLString()
+    >>> url = '☃.com' #doctest has trouble with utf-8 encoding
+    >>> print(canonicalize(handyurl.parse(url)).getURLString())
     http://xn--n3h.com/
 
     #Add these percent-encoded unicode tests
@@ -140,7 +145,7 @@ def canonicalize(url, **_ignored):
     # if the host was an ascii string of percent-encoded bytes that represent
     # non-ascii unicode chars, then promote hostE from str to unicode.
     # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
-    if isinstance(hostE, str):
+    if isinstance(hostE, six.binary_type):
         try:
             hostE.decode('ascii')
         except UnicodeDecodeError:
@@ -155,7 +160,7 @@ def canonicalize(url, **_ignored):
         # be encodeced separately, and doesn't work correctly with
         # full hostnames. So use 'idna' encoding instead.
         #host = encodings.idna.ToASCII(hostE)
-        host = hostE.encode('idna')
+        host = hostE.encode('idna').decode('utf-8')
     except ValueError:
         host = hostE
 
@@ -284,7 +289,7 @@ def escapeOnce(input):
         # percent encoding, since different encodings of the same unicode
         # characters will result in different surts.
         # We will use utf-8 for consistency.
-        if isinstance(input, unicode):
+        if isinstance(input, six.text_type):
             input = input.encode('utf-8')
         return quote(input, """!"$&'()*+,-./:;<=>?@[\]^_`{|}~""")
     else:

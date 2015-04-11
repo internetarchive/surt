@@ -26,8 +26,13 @@ The doctests are copied from DefaultIAURLCanonicalizerTest.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/test/java/org/archive/url/DefaultIAURLCanonicalizerTest.java?view=markup
 """
 
-import GoogleURLCanonicalizer
-import IAURLCanonicalizer
+try:  #pragma: no cover
+    import GoogleURLCanonicalizer
+    import IAURLCanonicalizer
+
+except ImportError:  #pragma: no cover
+    import surt.GoogleURLCanonicalizer as GoogleURLCanonicalizer
+    import surt.IAURLCanonicalizer as IAURLCanonicalizer
 
 # canonicalize()
 #_______________________________________________________________________________
@@ -36,7 +41,7 @@ def canonicalize(url, **options):
 
     These doctests are from DefaultIAURLCanonicalizerTest.java:
 
-    >>> from handyurl import handyurl
+    >>> from .handyurl import handyurl
     >>> canonicalize(handyurl.parse("http://www.alexa.com/")).getURLString()
     'http://alexa.com/'
     >>> canonicalize(handyurl.parse("http://archive.org/index.html")).getURLString()
