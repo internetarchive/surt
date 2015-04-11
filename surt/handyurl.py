@@ -26,6 +26,7 @@ import re
 import tldextract
 
 from six.moves.urllib.parse import urlsplit
+from six import u
 
 from surt.URLRegexTransformer import hostToSURT
 
@@ -74,7 +75,7 @@ class handyurl(object):
     #___________________________________________________________________________
     @classmethod
     def parse(cls, url):
-        u"""This method was in the java URLParser class, but we don't need
+        u("""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
         These doctests come from URLParserTest.java:
@@ -100,10 +101,10 @@ class handyurl(object):
         >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
         'http://www.archive.org:8080/#foo'
 
-        >>> print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl())
+        >>> print(handyurl.parse(u("http://bücher.ch:8080?#foo")).geturl())
         http://b\xfccher.ch:8080/#foo
 
-        >>> print(handyurl.parse(u"dns:bücher.ch").geturl())
+        >>> print(handyurl.parse(u("dns:bücher.ch")).geturl())
         dns:b\xfccher.ch
 
         ###From Tymm:
@@ -115,7 +116,7 @@ class handyurl(object):
         ###From Common Crawl, host ends with ':' without a port number
         >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
         'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
-        """
+        """)
         url = url.strip()
         url = re.sub('[\n\r\t]', '', url)
 
