@@ -31,7 +31,7 @@ import IAURLCanonicalizer
 
 # canonicalize()
 #_______________________________________________________________________________
-def canonicalize(url):
+def canonicalize(url, **options):
     """The input url is a handyurl instance
 
     These doctests are from DefaultIAURLCanonicalizerTest.java:
@@ -53,8 +53,8 @@ def canonicalize(url):
     'http://archive.org/index.html?a=b&b=a&b=b'
     """
 
-    url = GoogleURLCanonicalizer.canonicalize(url)
-    url = IAURLCanonicalizer.canonicalize(url)
+    url = GoogleURLCanonicalizer.canonicalize(url, **options)
+    url = IAURLCanonicalizer.canonicalize(url, **options)
 
     return url
 

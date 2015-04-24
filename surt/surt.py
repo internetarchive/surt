@@ -26,11 +26,29 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 from handyurl import handyurl
 from URLRegexTransformer import hostToSURT
-from DefaultIAURLCanonicalizer import canonicalize
+import DefaultIAURLCanonicalizer
+
+class CompositeCanonicalizer(object):
+    def __init__(self, canonicalizers):
+        self.caonicalizers = [
+            self._normalize(canon) for canon in canonicalizers
+            ]
+    def __call__(self, hurl, **options):
+        for canon in self.canonicalizers:
+            hurl = canon(hurl, **options)
+        return hurl
+    @staticmethod
+    def _normalize(canonicalizer):
+        if hasattr(canonicalizer, '__call__'):
+            return canonicalizer
+        if hasattr(canonicalizer, 'canonicalize'):
+            return canonicalizer.canonicalize
+        raise AttributeError('canonicalizer must either is callable or have'
+                             ' "canonicalizer" method')
 
 # surt()
 #_______________________________________________________________________________
-def surt(url):
+def surt(url, canonicalizer=None):
     """
     These doctests are from WaybackURLKeyMakerTest.java
 
@@ -75,6 +93,10 @@ def surt(url):
     Yahoo web bug. See https://github.com/internetarchive/surt/issues/1
     >>> surt('http://visit.webhosting.yahoo.com/visit.gif?&r=http%3A//web.archive.org/web/20090517140029/http%3A//anthonystewarthead.electric-chi.com/&b=Netscape%205.0%20%28Windows%3B%20en-US%29&s=1366x768&o=Win32&c=24&j=true&v=1.2')
     'com,yahoo,webhosting,visit)/visit.gif?&b=netscape%205.0%20(windows;%20en-us)&c=24&j=true&o=win32&r=http://web.archive.org/web/20090517140029/http://anthonystewarthead.electric-chi.com/&s=1366x768&v=1.2'
+
+    Simple customization:
+    >>> surt("http://www.example.com/", canonicalizer=lambda x: x)
+    'com,example,www)/'
     """
 
     if not url:
@@ -92,7 +114,16 @@ def surt(url):
     if url.startswith("whois://"):
         return url
 
-    hurl = canonicalize(handyurl.parse(url))
+    if canonicalizer is None:
+        canonicalizer = DefaultIAURLCanonicalizer.canonicalize
+    else:
+        if isinstance(canonicalizer, (list, tuple)):
+            canonicalizer = CompositeCanonicalizer(canonicalizer)
+        elif (not hasattr(canonicalizer, '__call__') and
+              hasattr(canonicalizer, 'canonicalize')):
+            canonicalizer = canonicalizer.canonicalize
+            
+    hurl = canonicalizer(handyurl.parse(url))
     key  = hurl.getURLString(surt=True)
 
     parenIdx = key.find('(')

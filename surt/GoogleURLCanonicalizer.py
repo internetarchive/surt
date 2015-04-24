@@ -37,7 +37,7 @@ from urllib import quote, unquote
 
 # unescapeRepeatedly()
 #_______________________________________________________________________________
-def canonicalize(url):
+def canonicalize(url, **_ignored):
     """
     >>> canonicalize(handyurl.parse("http://host/%25%32%35")).getURLString()
     'http://host/%25'
