@@ -20,10 +20,15 @@
 #
 #     The surt source is hosted at https://github.com/internetarchive/surt
 
+from __future__ import absolute_import
+
 import re
 import tldextract
-from urlparse import urlsplit
-from URLRegexTransformer import hostToSURT
+try:
+    from urllib.parse import urlsplit
+except:
+    from urlparse import urlsplit
+from surt.URLRegexTransformer import hostToSURT
 
 class handyurl(object):
     """A python port of the archive-commons org.archive.url HandyURL class
@@ -96,10 +101,10 @@ class handyurl(object):
         >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
         'http://www.archive.org:8080/#foo'
 
-        >>> print handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
+        >>> print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl())
         http://b\xfccher.ch:8080/#foo
 
-        >>> print handyurl.parse(u"dns:bücher.ch").geturl()
+        >>> print(handyurl.parse(u"dns:bücher.ch").geturl())
         dns:b\xfccher.ch
 
         ###From Tymm:

@@ -24,9 +24,11 @@
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/WaybackURLKeyMaker.java?view=markup
 """
 
-from handyurl import handyurl
-from URLRegexTransformer import hostToSURT
-import DefaultIAURLCanonicalizer
+from __future__ import absolute_import
+
+from surt.handyurl import handyurl
+from surt.URLRegexTransformer import hostToSURT
+from surt import DefaultIAURLCanonicalizer
 
 class CompositeCanonicalizer(object):
     def __init__(self, canonicalizers):
