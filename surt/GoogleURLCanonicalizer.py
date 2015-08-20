@@ -37,12 +37,12 @@ import encodings.idna
 from surt.handyurl import handyurl
 
 from six.moves.urllib.parse import quote, unquote
-from six import u, text_type, binary_type
+from six import text_type, binary_type
 
 # unescapeRepeatedly()
 #_______________________________________________________________________________
 def canonicalize(url, **_ignored):
-    """
+    u"""
     >>> canonicalize(handyurl.parse("http://host/%25%32%35")).getURLString()
     'http://host/%25'
     >>> canonicalize(handyurl.parse("http://host/%25%32%35%25%32%35")).getURLString()
@@ -97,11 +97,11 @@ def canonicalize(url, **_ignored):
     #'http://%01%80.com/' for this case. If idna/punycode encoding of a hostname
     #is not possible, the python version encodes unicode domains as utf-8 before
     #percent encoding, so we get 'http://%01%C2%80.com/'
-    >>> print(canonicalize(handyurl.parse(u("http://\u0001\u0080.com/"))).getURLString())
+    >>> print(canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString())
     http://%01%C2%80.com/
 
     #Add these unicode tests:
-    >>> print(canonicalize(handyurl.parse(u('B\xfccher.ch:8080'))).getURLString())
+    >>> print(canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString())
     http://xn--bcher-kva.ch:8080/
     >>> url = '☃.com' #doctest has trouble with utf-8 encoding
     >>> print(canonicalize(handyurl.parse(url)).getURLString())

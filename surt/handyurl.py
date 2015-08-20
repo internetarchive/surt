@@ -26,7 +26,6 @@ import re
 import tldextract
 
 from six.moves.urllib.parse import urlsplit
-from six import u
 
 from surt.URLRegexTransformer import hostToSURT
 
@@ -59,7 +58,7 @@ class handyurl(object):
     #___________________________________________________________________________
     def __init__(self, scheme=None, authUser=None, authPass=None,
                  host=None, port=DEFAULT_PORT, path=None,
-                 query=None, hash=None, opaque=None, last_delimiter=None):
+                 query=None, hash=None, last_delimiter=None):
         self.scheme   = scheme
         self.authUser = authUser
         self.authPass = authPass
@@ -68,14 +67,13 @@ class handyurl(object):
         self.path     = path
         self.query    = query
         self.hash     = hash
-        self.opaque   = opaque
         self.last_delimiter = last_delimiter #added in python version
 
     # parse() classmethod
     #___________________________________________________________________________
     @classmethod
     def parse(cls, url):
-        u("""This method was in the java URLParser class, but we don't need
+        u"""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
         These doctests come from URLParserTest.java:
@@ -101,10 +99,16 @@ class handyurl(object):
         >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
         'http://www.archive.org:8080/#foo'
 
-        >>> print(handyurl.parse(u("http://bücher.ch:8080?#foo")).geturl())
+        >>> handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
+        'http://bücher.ch:8080/#foo'
+
+        >>> handyurl.parse(u"dns:bücher.ch").geturl()
+        'dns:bücher.ch'
+
+        >>> print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl())
         http://b\xfccher.ch:8080/#foo
 
-        >>> print(handyurl.parse(u("dns:bücher.ch")).geturl())
+        >>> print(handyurl.parse(u"dns:bücher.ch").geturl())
         dns:b\xfccher.ch
 
         ###From Tymm:
@@ -116,14 +120,15 @@ class handyurl(object):
         ###From Common Crawl, host ends with ':' without a port number
         >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
         'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
-        """)
+
+        >>> handyurl.parse("mailto:bot@archive.org").scheme
+        'mailto'
+
+        >>> handyurl.parse("mailto:bot@archive.org").geturl()
+        'mailto:bot@archive.org'
+        """
         url = url.strip()
         url = re.sub('[\n\r\t]', '', url)
-
-        ### DNS URLs are treated separately as opaque urls by URLParser.java
-        # However, we want to surtify dns urls as well.
-        if re.match("^(filedesc|warcinfo):.*", url):
-            return cls(opaque=url)
 
         url = cls.addDefaultSchemeIfNeeded(url)
 
@@ -185,12 +190,8 @@ class handyurl(object):
         if not url:
             return url
 
-        ###raj: DNS URLs are treated separately as opaque urls by URLParser.java,
-        #but we want to surtify dns urls as well
-        if url.startswith('dns:'):
-            return url
-
-        if re.match("^(http|https|ftp|mms|rtsp|wais)://.*", url):
+        ###noah: accept anything that looks like it starts with a scheme:
+        if re.match("^([a-zA-Z][a-zA-Z0-9\+\-\.]*):", url):
             return url
         else:
             return "http://"+url
@@ -211,36 +212,36 @@ class handyurl(object):
                      trailing_comma=False,
                      **options):
 
-        if None != self.opaque:
-            return self.opaque
-
-        if 'dns' == self.scheme:
-            s = self.scheme + ':'   ###java version adds :// regardless of scheme
-        else:                       ###java version uses opaque type for dns urls, but this version supports dns urls
-            s = self.scheme + '://'
-        if surt:
-            s += "("
-
-        if self.authUser:
-            s += self.authUser
-            if self.authPass:
-                s += self.authPass
-            s += '@'
+        s = self.scheme + ':'
 
         hostSrc = self.host
         if public_suffix:
             hostSrc = self.getPublicSuffix()
         if surt:
             hostSrc = hostToSURT(hostSrc)
-        s += hostSrc
 
-        if self.port != self.DEFAULT_PORT:
-            s += ":%d" % self.port
+        if hostSrc:
+            if self.scheme != 'dns':
+                s += '//'
 
-        if surt:
-            if trailing_comma:
-                s += ','
-            s += ')'
+            if surt:
+                s += "("
+
+            if self.authUser:
+                s += self.authUser
+                if self.authPass:
+                    s += self.authPass
+                s += '@'
+
+            s += hostSrc
+
+            if self.port != self.DEFAULT_PORT:
+                s += ":%d" % self.port
+
+            if surt:
+                if trailing_comma:
+                    s += ','
+                s += ')'
 
         hasPath = (None != self.path) and (len(self.path) > 0)
         if hasPath:
@@ -320,7 +321,7 @@ class handyurl(object):
     # commented out because of http://bugs.python.org/issue5876
     # "__repr__ returning unicode doesn't work when called implicitly"
     #def __repr__(self):
-    #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s, opaque=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash, self.opaque)
+    #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash)
 
 
 
