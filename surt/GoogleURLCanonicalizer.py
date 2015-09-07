@@ -129,6 +129,9 @@ def canonicalize(url, **_ignored):
     'http://host.com/ab%23cd'
     >>> canonicalize(handyurl.parse("http://host.com//twoslashes?more//slashes")).getURLString()
     'http://host.com/twoslashes?more//slashes'
+
+    >>> canonicalize(handyurl.parse("mailto:foo@example.com")).getURLString()
+    'mailto:foo@example.com'
     """
 
     url.hash = None
@@ -139,42 +142,46 @@ def canonicalize(url, **_ignored):
     if url.query:
         url.query = minimalEscape(url.query)
 
-    hostE = unescapeRepeatedly(url.host)
+    if url.host:
+        hostE = unescapeRepeatedly(url.host)
 
-    # if the host was an ascii string of percent-encoded bytes that represent
-    # non-ascii unicode chars, then promote hostE from str to unicode.
-    # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
-    if isinstance(hostE, binary_type):
+        # if the host was an ascii string of percent-encoded bytes that represent
+        # non-ascii unicode chars, then promote hostE from str to unicode.
+        # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
+        if isinstance(hostE, binary_type):
+            try:
+                hostE.decode('ascii')
+            except UnicodeDecodeError:
+                hostE = hostE.decode('utf-8', 'ignore')
+
+
+        host = None
         try:
-            hostE.decode('ascii')
-        except UnicodeDecodeError:
-            hostE = hostE.decode('utf-8', 'ignore')
+            # Note: I copied the use of the ToASCII(hostE) from
+            # the java code. This function implements RFC3490, which
+            # requires that each component of the hostname (i.e. each label)
+            # be encodeced separately, and doesn't work correctly with
+            # full hostnames. So use 'idna' encoding instead.
+            #host = encodings.idna.ToASCII(hostE)
+            host = hostE.encode('idna').decode('utf-8')
+        except ValueError:
+            host = hostE
 
+        host = host.replace('..', '.').strip('.')
 
-    host = None
-    try:
-        # Note: I copied the use of the ToASCII(hostE) from
-        # the java code. This function implements RFC3490, which
-        # requires that each component of the hostname (i.e. each label)
-        # be encodeced separately, and doesn't work correctly with
-        # full hostnames. So use 'idna' encoding instead.
-        #host = encodings.idna.ToASCII(hostE)
-        host = hostE.encode('idna').decode('utf-8')
-    except ValueError:
-        host = hostE
+        ip = attemptIPFormats(host)
+        if ip:
+            host = ip;
+        else:
+            host = escapeOnce(host.lower())
 
-    host = host.replace('..', '.').strip('.')
-
-    ip = attemptIPFormats(host)
-    if ip:
-        host = ip;
-    else:
-        host = escapeOnce(host.lower())
-
-    url.host = host
+        url.host = host
 
     path = unescapeRepeatedly(url.path)
-    url.path = escapeOnce(normalizePath(path))
+    if url.host:
+        path = normalizePath(path)
+    # else path is free-form sort of thing, not /directory/thing
+    url.path = escapeOnce(path)
 
     return url
 
