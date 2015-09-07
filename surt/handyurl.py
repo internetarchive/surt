@@ -215,10 +215,11 @@ class handyurl(object):
         s = self.scheme + ':'
 
         hostSrc = self.host
-        if public_suffix:
-            hostSrc = self.getPublicSuffix()
-        if surt:
-            hostSrc = hostToSURT(hostSrc)
+        if hostSrc:
+            if public_suffix:
+                hostSrc = self.getPublicSuffix()
+            if surt:
+                hostSrc = hostToSURT(hostSrc)
 
         if hostSrc:
             if self.scheme != 'dns':

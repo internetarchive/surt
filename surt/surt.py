@@ -110,6 +110,9 @@ def surt(url, canonicalizer=None, **options):
     Simple customization:
     >>> surt("http://www.example.com/", canonicalizer=lambda x, **opts: x)
     'com,example,www)/'
+
+    >>> surt("mailto:foo@example.com")
+    'mailto:foo@example.com'
     """
 
     if not url:
