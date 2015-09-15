@@ -113,6 +113,39 @@ def surt(url, canonicalizer=None, **options):
 
     >>> surt("mailto:foo@example.com")
     'mailto:foo@example.com'
+
+    >>> surt("http://www.example.com/", with_scheme=True)
+    'http://(com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, host_massage=True)
+    'http://(com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=False)
+    'com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, trailing_comma=True)
+    'http://(com,example,)/'
+
+    >>> surt("https://www.example.com/", with_scheme=True, trailing_comma=True)
+    'https://(com,example,)/'
+
+    >>> surt("ftp://www.example.com/", with_scheme=True, trailing_comma=True)
+    'ftp://(com,example,)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, host_massage=False)
+    'http://(com,example,www)/'
+
+    >>> surt("http://www.example.com/", with_scheme=False, host_massage=False)
+    'com,example,www)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'http://(com,example,www,)/'
+
+    >>> surt("https://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'https://(com,example,www,)/'
+
+    >>> surt("ftp://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'ftp://(com,example,www,)/'
     """
 
     if not url:
@@ -149,11 +182,13 @@ def surt(url, canonicalizer=None, **options):
     hurl = canonicalizer(handyurl.parse(url), **options)
     key  = hurl.getURLString(**options)
 
-    parenIdx = key.find('(')
-    if -1 == parenIdx:
-        return url #something very wrong
-
-    return key[parenIdx+1:]
+    if not options.get('with_scheme'):
+        parenIdx = key.find('(')
+        if -1 == parenIdx:
+            return url #something very wrong
+        return key[parenIdx+1:]
+    else:
+        return key
 
 
 # main()
