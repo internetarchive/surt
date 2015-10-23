@@ -25,6 +25,11 @@ import tldextract
 from urlparse import urlsplit
 from URLRegexTransformer import hostToSURT
 
+_RE_MULTIPLE_PROTOCOLS = re.compile(r'^(https?://)+')
+_RE_HAS_PROTOCOL = re.compile("^(?:http|https|ftp|mms|rtsp|wais)://")
+_RE_OPAQUE_URLS = re.compile("^(?:filedesc|warcinfo):")
+_RE_SPACES = re.compile('[\n\r\t]')
+
 class handyurl(object):
     """A python port of the archive-commons org.archive.url HandyURL class
 
@@ -112,18 +117,22 @@ class handyurl(object):
         >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
         'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
         """
+        # Note RE_SPACES does not match regular space (0x20). That is,
+        # regular spaces are removed at head and tail, but not in the middle.
+        # There's a test case for GoogleURLCanonicalizer.canonicalize that
+        # asserts this behavior.
         url = url.strip()
-        url = re.sub('[\n\r\t]', '', url)
+        url = _RE_SPACES.sub('', url)
 
         ### DNS URLs are treated separately as opaque urls by URLParser.java
         # However, we want to surtify dns urls as well.
-        if re.match("^(filedesc|warcinfo):.*", url):
+        if _RE_OPAQUE_URLS.match(url):
             return cls(opaque=url)
 
         url = cls.addDefaultSchemeIfNeeded(url)
 
         #From Tymm: deal with http://https/order.1and1.com
-        url = re.sub('^(https?://)+', r'\1', url)
+        url = _RE_MULTIPLE_PROTOCOLS.sub(lambda m: m.group(1), url)
 
         """The java code seems to use this regex:
         re.compile("^(([a-zA-Z][a-zA-Z0-9\+\-\.]*):)?((//([^/?#]*))?([^?#]*)(\?([^#]*))?)?(#(.*))?")
@@ -185,7 +194,7 @@ class handyurl(object):
         if url.startswith('dns:'):
             return url
 
-        if re.match("^(http|https|ftp|mms|rtsp|wais)://.*", url):
+        if _RE_HAS_PROTOCOL.match(url):
             return url
         else:
             return "http://"+url
@@ -231,13 +240,11 @@ class handyurl(object):
         if surt:
             s += ')'
 
-        hasPath = (None != self.path) and (len(self.path) > 0)
-        if hasPath:
+        if self.path:
             s += self.path
-        else:
-            if (None != self.query) or (None != self.hash):
-                #must have '/' with query or hash:
-                s += '/'
+        elif self.query is not None or self.hash is not None:
+            #must have '/' with query or hash:
+            s += '/'
 
         if None != self.query:
             s += '?' + self.query

@@ -30,6 +30,11 @@ import re
 
 # stripPathSessionID
 #_______________________________________________________________________________
+_RES_PATH_SESSIONID = [
+    re.compile("^(.*/)(\((?:[a-z]\([0-9a-z]{24}\))+\)/)([^\?]+\.aspx.*)$", re.I),
+    re.compile("^(.*/)(\\([0-9a-z]{24}\\)/)([^\\?]+\\.aspx.*)$", re.I),
+    ]
+
 def stripPathSessionID(path):
     """It looks like the java version returns a lowercased path..
     So why does it uses a case-insensitive regex? We won't lowercase here.
@@ -52,11 +57,7 @@ def stripPathSessionID(path):
     >>> stripPathSessionID("/photos/36050182@N05/")
     '/photos/36050182@N05/'
     """
-    patterns = [re.compile("^(.*/)(\((?:[a-z]\([0-9a-z]{24}\))+\)/)([^\?]+\.aspx.*)$", re.I),
-                re.compile("^(.*/)(\\([0-9a-z]{24}\\)/)([^\\?]+\\.aspx.*)$", re.I),
-               ]
-
-    for pattern in patterns:
+    for pattern in _RES_PATH_SESSIONID:
         m = pattern.match(path)
         if m:
             path = m.group(1) + m.group(3)
@@ -66,6 +67,14 @@ def stripPathSessionID(path):
 
 # stripQuerySessionID
 #_______________________________________________________________________________
+_RES_QUERY_SESSIONID = [
+    re.compile("^(.+)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.+)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.+)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.+)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
+    re.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
+    ]
+
 def stripQuerySessionID(path):
     """These doctests are from IAURLCanonicalizerTest.java:
 
@@ -148,14 +157,7 @@ def stripQuerySessionID(path):
     '?requestID=200608200458360%2E39414378'
 
     """
-    patterns = [re.compile("^(.+)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
-               ]
-
-    for pattern in patterns:
+    for pattern in _RES_QUERY_SESSIONID:
         m = pattern.match(path)
         if m:
             if m.group(2):
@@ -175,12 +177,7 @@ def hostToSURT(host):
     """
     # TODO: ensure we DONT reverse IP addresses!
     parts = host.split('.')
-
-    if 1 == len(parts):
-        return host
-
     parts.reverse()
-
     return ','.join(parts)
 
 # main()

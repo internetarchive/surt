@@ -172,6 +172,8 @@ def alphaReorderQuery(orig):
 
 # massageHost()
 #_______________________________________________________________________________
+_RE_WWWDIGITS = re.compile('www\d*\.')
+
 def massageHost(host):
     """These doctests are from IAURLCanonicalizerTest.java:
 
@@ -188,7 +190,7 @@ def massageHost(host):
     'www2foo.com'
     """
 
-    m = re.match('www\d*\.', host)
+    m = _RE_WWWDIGITS.match(host)
     if m:
         return host[len(m.group(0)):]
     else:

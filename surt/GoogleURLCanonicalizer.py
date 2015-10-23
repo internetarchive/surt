@@ -219,6 +219,9 @@ def normalizePath(path):
 
     return path
 
+OCTAL_IP = re.compile(r"^(0[0-7]*)(\.[0-7]+)?(\.[0-7]+)?(\.[0-7]+)?$")
+DECIMAL_IP = re.compile(r"^([1-9][0-9]*)(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?$")
+
 # attemptIPFormats()
 #_______________________________________________________________________________
 def attemptIPFormats(host):
@@ -242,14 +245,10 @@ def attemptIPFormats(host):
     >>> attemptIPFormats("39024579298")
     '22.11.210.226'
     """
-
-    OCTAL_IP   = re.compile("^(0[0-7]*)(\.[0-7]+)?(\.[0-7]+)?(\.[0-7]+)?$")
-    DECIMAL_IP = re.compile("^([1-9][0-9]*)(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?$")
-
     if None == host:
         return None
 
-    if re.match("^\d+$", host):
+    if host.isdigit():
         #mask hostname to lower four bytes to workaround issue with liveweb arc files
         return socket.inet_ntoa(struct.pack('>L', int(host) & 0xffffffff))
     else:
