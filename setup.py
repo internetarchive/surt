@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='surt',
-      version='0.2',
+      version='0.3b1',
       author='rajbot',
       author_email='raj@archive.org',
       classifiers=[
