@@ -11,9 +11,6 @@ python:
     - pypy # currently points to 3.6-dev
     - pypy3 # currently points to 3.6-dev
 
-script: 
-        - py.test -v --cov surt tests/
-
-install:
-        - pip install . pytest coveralls
+install: pip install . pytest pytest-cov
+script: py.test -v --cov=surt tests/
 
