@@ -1,20 +1,15 @@
-# vim: set sw=4 et:
-#
-# tox approach stolen from
-# https://github.com/pypa/pip/blob/abdb597dbfb51b21cc76c1cff068b72c80f3a77d/.travis.yml
-#
-
 language: python
 
-env:
-    - TOXENV=py26
-    - TOXENV=py27
-    - TOXENV=py33
-    - TOXENV=py34
-    - TOXENV=py35
-    - TOXENV=jython
-    - TOXENV=pypy
-    - TOXENV=pypy3
+python:
+    - 2.6
+    - 2.7
+    - 3.3
+    - 3.4
+    - 3.5
+    - 3.5-dev # 3.5 development branch
+    - nightly # currently points to 3.6-dev
+    - pypy # currently points to 3.6-dev
+    - pypy3 # currently points to 3.6-dev
 
 before_install:
     - sudo apt-get update
@@ -23,7 +18,7 @@ before_install:
 before_script:
     - pip install tox
 
-script: tox
+script: py.test -v --cov surt tests/
 
 #after_success:
     #coveralls
