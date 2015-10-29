@@ -24,9 +24,12 @@
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/WaybackURLKeyMaker.java?view=markup
 """
 
-from handyurl import handyurl
-from URLRegexTransformer import hostToSURT
-import DefaultIAURLCanonicalizer
+from __future__ import absolute_import
+
+from surt.handyurl import handyurl
+from surt.URLRegexTransformer import hostToSURT
+
+import surt.DefaultIAURLCanonicalizer as DefaultIAURLCanonicalizer
 
 class CompositeCanonicalizer(object):
     def __init__(self, canonicalizers):
@@ -48,7 +51,7 @@ class CompositeCanonicalizer(object):
 
 # surt()
 #_______________________________________________________________________________
-def surt(url, canonicalizer=None):
+def surt(url, canonicalizer=None, **options):
     """
     These doctests are from WaybackURLKeyMakerTest.java
 
@@ -82,6 +85,16 @@ def surt(url, canonicalizer=None):
     >>> surt("http://archive.org/goo/?a=2&b&a=1")
     'org,archive)/goo?a=1&a=2&b'
 
+    # trailing comma mode
+    >>> surt("http://archive.org/goo/?a=2&b&a=1", trailing_comma=True)
+    'org,archive,)/goo?a=1&a=2&b'
+
+    >>> surt("dns:archive.org", trailing_comma=True)
+    'org,archive,)'
+
+    >>> surt("warcinfo:foo.warc.gz", trailing_comma=True)
+    'warcinfo:foo.warc.gz'
+
     PHP session id:
     >>> surt("http://archive.org/index.php?PHPSESSID=0123456789abcdefghijklemopqrstuv&action=profile;u=4221")
     'org,archive)/index.php?action=profile;u=4221'
@@ -95,8 +108,44 @@ def surt(url, canonicalizer=None):
     'com,yahoo,webhosting,visit)/visit.gif?&b=netscape%205.0%20(windows;%20en-us)&c=24&j=true&o=win32&r=http://web.archive.org/web/20090517140029/http://anthonystewarthead.electric-chi.com/&s=1366x768&v=1.2'
 
     Simple customization:
-    >>> surt("http://www.example.com/", canonicalizer=lambda x: x)
+    >>> surt("http://www.example.com/", canonicalizer=lambda x, **opts: x)
     'com,example,www)/'
+
+    >>> surt("mailto:foo@example.com")
+    'mailto:foo@example.com'
+
+    >>> surt("http://www.example.com/", with_scheme=True)
+    'http://(com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, host_massage=True)
+    'http://(com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=False)
+    'com,example)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, trailing_comma=True)
+    'http://(com,example,)/'
+
+    >>> surt("https://www.example.com/", with_scheme=True, trailing_comma=True)
+    'https://(com,example,)/'
+
+    >>> surt("ftp://www.example.com/", with_scheme=True, trailing_comma=True)
+    'ftp://(com,example,)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, host_massage=False)
+    'http://(com,example,www)/'
+
+    >>> surt("http://www.example.com/", with_scheme=False, host_massage=False)
+    'com,example,www)/'
+
+    >>> surt("http://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'http://(com,example,www,)/'
+
+    >>> surt("https://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'https://(com,example,www,)/'
+
+    >>> surt("ftp://www.example.com/", with_scheme=True, trailing_comma=True, host_massage=False)
+    'ftp://(com,example,www,)/'
     """
 
     if not url:
@@ -109,7 +158,11 @@ def surt(url, canonicalizer=None):
         return url
 
     if url.startswith("dns:"):
-        return hostToSURT(url[4:]) + ')'
+        res = hostToSURT(url[4:])
+        if options.get('trailing_comma'):
+            res += ','
+        res += ')'
+        return res
 
     if url.startswith("whois://"):
         return url
@@ -122,15 +175,20 @@ def surt(url, canonicalizer=None):
         elif (not hasattr(canonicalizer, '__call__') and
               hasattr(canonicalizer, 'canonicalize')):
             canonicalizer = canonicalizer.canonicalize
-            
-    hurl = canonicalizer(handyurl.parse(url))
-    key  = hurl.getURLString(surt=True)
 
-    parenIdx = key.find('(')
-    if -1 == parenIdx:
-        return url #something very wrong
+    if 'surt' not in options:
+        options['surt'] = True
 
-    return key[parenIdx+1:]
+    hurl = canonicalizer(handyurl.parse(url), **options)
+    key  = hurl.getURLString(**options)
+
+    if not options.get('with_scheme'):
+        parenIdx = key.find('(')
+        if -1 == parenIdx:
+            return url #something very wrong
+        return key[parenIdx+1:]
+    else:
+        return key
 
 
 # main()

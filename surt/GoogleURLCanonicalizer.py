@@ -27,18 +27,22 @@ The doctests are copied from GoogleURLCanonicalizerTest.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/test/java/org/archive/url/GoogleURLCanonicalizerTest.java?view=markup
 """
 
+from __future__ import absolute_import
+
 import re
 import struct
 import socket
 import encodings.idna
-from handyurl import handyurl
-from urllib import quote, unquote
 
+from surt.handyurl import handyurl
+
+from six.moves.urllib.parse import quote, unquote
+from six import text_type, binary_type
 
 # unescapeRepeatedly()
 #_______________________________________________________________________________
 def canonicalize(url, **_ignored):
-    """
+    u"""
     >>> canonicalize(handyurl.parse("http://host/%25%32%35")).getURLString()
     'http://host/%25'
     >>> canonicalize(handyurl.parse("http://host/%25%32%35%25%32%35")).getURLString()
@@ -93,14 +97,14 @@ def canonicalize(url, **_ignored):
     #'http://%01%80.com/' for this case. If idna/punycode encoding of a hostname
     #is not possible, the python version encodes unicode domains as utf-8 before
     #percent encoding, so we get 'http://%01%C2%80.com/'
-    >>> print canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString()
+    >>> print(canonicalize(handyurl.parse(u"http://\u0001\u0080.com/")).getURLString())
     http://%01%C2%80.com/
 
     #Add these unicode tests:
-    >>> print canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString()
+    >>> print(canonicalize(handyurl.parse(u'B\xfccher.ch:8080')).getURLString())
     http://xn--bcher-kva.ch:8080/
-    >>> url = '☃.com'.decode('utf-8') #doctest has trouble with utf-8 encoding
-    >>> print canonicalize(handyurl.parse(url)).getURLString()
+    >>> url = '☃.com' #doctest has trouble with utf-8 encoding
+    >>> print(canonicalize(handyurl.parse(url)).getURLString())
     http://xn--n3h.com/
 
     #Add these percent-encoded unicode tests
@@ -125,6 +129,9 @@ def canonicalize(url, **_ignored):
     'http://host.com/ab%23cd'
     >>> canonicalize(handyurl.parse("http://host.com//twoslashes?more//slashes")).getURLString()
     'http://host.com/twoslashes?more//slashes'
+
+    >>> canonicalize(handyurl.parse("mailto:foo@example.com")).getURLString()
+    'mailto:foo@example.com'
     """
 
     url.hash = None
@@ -135,42 +142,46 @@ def canonicalize(url, **_ignored):
     if url.query:
         url.query = minimalEscape(url.query)
 
-    hostE = unescapeRepeatedly(url.host)
+    if url.host:
+        hostE = unescapeRepeatedly(url.host)
 
-    # if the host was an ascii string of percent-encoded bytes that represent
-    # non-ascii unicode chars, then promote hostE from str to unicode.
-    # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
-    if isinstance(hostE, str):
+        # if the host was an ascii string of percent-encoded bytes that represent
+        # non-ascii unicode chars, then promote hostE from str to unicode.
+        # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
+        if isinstance(hostE, binary_type):
+            try:
+                hostE.decode('ascii')
+            except UnicodeDecodeError:
+                hostE = hostE.decode('utf-8', 'ignore')
+
+
+        host = None
         try:
-            hostE.decode('ascii')
-        except UnicodeDecodeError:
-            hostE = hostE.decode('utf-8', 'ignore')
+            # Note: I copied the use of the ToASCII(hostE) from
+            # the java code. This function implements RFC3490, which
+            # requires that each component of the hostname (i.e. each label)
+            # be encodeced separately, and doesn't work correctly with
+            # full hostnames. So use 'idna' encoding instead.
+            #host = encodings.idna.ToASCII(hostE)
+            host = hostE.encode('idna').decode('utf-8')
+        except ValueError:
+            host = hostE
 
+        host = host.replace('..', '.').strip('.')
 
-    host = None
-    try:
-        # Note: I copied the use of the ToASCII(hostE) from
-        # the java code. This function implements RFC3490, which
-        # requires that each component of the hostname (i.e. each label)
-        # be encodeced separately, and doesn't work correctly with
-        # full hostnames. So use 'idna' encoding instead.
-        #host = encodings.idna.ToASCII(hostE)
-        host = hostE.encode('idna')
-    except ValueError:
-        host = hostE
+        ip = attemptIPFormats(host)
+        if ip:
+            host = ip;
+        else:
+            host = escapeOnce(host.lower())
 
-    host = host.replace('..', '.').strip('.')
-
-    ip = attemptIPFormats(host)
-    if ip:
-        host = ip;
-    else:
-        host = escapeOnce(host.lower())
-
-    url.host = host
+        url.host = host
 
     path = unescapeRepeatedly(url.path)
-    url.path = escapeOnce(normalizePath(path))
+    if url.host:
+        path = normalizePath(path)
+    # else path is free-form sort of thing, not /directory/thing
+    url.path = escapeOnce(path)
 
     return url
 
@@ -283,7 +294,7 @@ def escapeOnce(input):
         # percent encoding, since different encodings of the same unicode
         # characters will result in different surts.
         # We will use utf-8 for consistency.
-        if isinstance(input, unicode):
+        if isinstance(input, text_type):
             input = input.encode('utf-8')
         return quote(input, """!"$&'()*+,-./:;<=>?@[\]^_`{|}~""")
     else:

@@ -26,9 +26,12 @@ The doctests are copied from IAURLCanonicalizerTest.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/test/java/org/archive/url/IAURLCanonicalizerTest.java?view=markup
 """
 
+from __future__ import absolute_import
+
 import re
-from handyurl import handyurl
-from URLRegexTransformer import stripPathSessionID, stripQuerySessionID
+
+from surt.handyurl import handyurl
+from surt.URLRegexTransformer import stripPathSessionID, stripQuerySessionID
 
 # canonicalize()
 #_______________________________________________________________________________
