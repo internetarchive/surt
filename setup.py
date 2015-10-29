@@ -9,7 +9,7 @@ class PyTest(TestCommand):
     def run_tests(self):
         import pytest
         import sys
-        cmdline = ' -v --doctest-modules --cov surt surt/'
+        cmdline = ' -v --doctest-modules --cov surt tests/'
         errcode = pytest.main(cmdline)
         sys.exit(errcode)
 
@@ -33,7 +33,7 @@ setup(name='surt',
       packages=[ 'surt' ],
       scripts=[],
       # Tests
-      tests_require=[ 'pytest' ],
+      tests_require=[ 'pytest', 'pytest-cov' ],
       test_suite='',
       cmdclass={'test': PyTest},
      )

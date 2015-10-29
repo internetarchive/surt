@@ -80,56 +80,6 @@ class handyurl(object):
         u"""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
-        These doctests come from URLParserTest.java:
-
-        >>> handyurl.parse("http://www.archive.org/index.html#foo").geturl()
-        'http://www.archive.org/index.html#foo'
-
-        >>> handyurl.parse("http://www.archive.org/").geturl()
-        'http://www.archive.org/'
-
-        >>> handyurl.parse("http://www.archive.org").geturl()
-        'http://www.archive.org'
-
-        >>> handyurl.parse("http://www.archive.org?").geturl()
-        'http://www.archive.org?'
-
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?query#foo").geturl()
-        'http://www.archive.org:8080/index.html?query#foo'
-
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?#foo").geturl()
-        'http://www.archive.org:8080/index.html#foo'
-
-        >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
-        'http://www.archive.org:8080/#foo'
-
-        >>> handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
-        'http://bücher.ch:8080/#foo'
-
-        >>> handyurl.parse(u"dns:bücher.ch").geturl()
-        'dns:bücher.ch'
-
-        >>> print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl())
-        http://b\xfccher.ch:8080/#foo
-
-        >>> print(handyurl.parse(u"dns:bücher.ch").geturl())
-        dns:b\xfccher.ch
-
-        ###From Tymm:
-        >>> handyurl.parse("http:////////////////www.vikings.com").geturl()
-        'http://www.vikings.com/'
-        >>> handyurl.parse("http://https://order.1and1.com").geturl()
-        'https://order.1and1.com'
-
-        ###From Common Crawl, host ends with ':' without a port number
-        >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
-        'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
-
-        >>> handyurl.parse("mailto:bot@archive.org").scheme
-        'mailto'
-
-        >>> handyurl.parse("mailto:bot@archive.org").geturl()
-        'mailto:bot@archive.org'
         """
         # Note RE_SPACES does not match regular space (0x20). That is,
         # regular spaces are removed at head and tail, but not in the middle.
@@ -273,26 +223,7 @@ class handyurl(object):
     def getPublicSuffix(self):
         """Uses the tldextract module to get the public suffix via the
         Public Suffix List.
-
-        These doctests are based off the ones found in HandyURLTest.java:
-
-        >>> h = handyurl(host='www.fool.com')
-        >>> h.getPublicSuffix()
-        'fool.com'
-
-        >>> h = handyurl(host='www.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'amazon.co.uk'
-
-        >>> h = handyurl(host='www.images.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'amazon.co.uk'
-
-        >>> h = handyurl(host='funky-images.fancy.co.jp')
-        >>> h.getPublicSuffix()
-        'fancy.co.jp'
         """
-
         r = tldextract.extract(self.host)
         return "%s.%s" % (r.domain, r.tld)
 
@@ -302,24 +233,6 @@ class handyurl(object):
     def getPublicPrefix(self):
         """Uses the tldextract module to get the subdomain, using the
         Public Suffix List.
-
-        These doctests are based off the ones found in HandyURLTest.java:
-
-        >>> h = handyurl(host='www.fool.com')
-        >>> h.getPublicPrefix()
-        'www'
-
-        >>> h = handyurl(host='www.amazon.co.uk')
-        >>> h.getPublicPrefix()
-        'www'
-
-        >>> h = handyurl(host='www.images.amazon.co.uk')
-        >>> h.getPublicPrefix()
-        'www.images'
-
-        >>> h = handyurl(host='funky-images.fancy.co.jp')
-        >>> h.getPublicPrefix()
-        'funky-images'
         """
         return tldextract.extract(self.host).subdomain
 
@@ -330,10 +243,3 @@ class handyurl(object):
     #def __repr__(self):
     #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash)
 
-
-
-# main()
-#_______________________________________________________________________________
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

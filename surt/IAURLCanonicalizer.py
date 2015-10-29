@@ -21,9 +21,6 @@
 
 """This is a python port of IAURLCanonicalizer.java:
 http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/IAURLCanonicalizer.java?view=markup
-
-The doctests are copied from IAURLCanonicalizerTest.java:
-http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/test/java/org/archive/url/IAURLCanonicalizerTest.java?view=markup
 """
 
 from __future__ import absolute_import
@@ -44,23 +41,6 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  query_strip_empty=True, query_alpha_reorder=True,
                  hash_strip=True, **_ignored):
     """The input url is a handyurl instance
-
-    These doctests are from IAURLCanonicalizerTest.java:
-
-    >>> canonicalize(handyurl.parse("http://ARCHIVE.ORG/")).getURLString()
-    'http://archive.org/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org:80/")).getURLString()
-    'http://archive.org/'
-    >>> canonicalize(handyurl.parse("https://www.archive.org:80/")).getURLString()
-    'https://archive.org:80/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org:443/")).getURLString()
-    'http://archive.org:443/'
-    >>> canonicalize(handyurl.parse("https://www.archive.org:443/")).getURLString()
-    'https://archive.org/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org/big/")).getURLString()
-    'http://archive.org/big'
-    >>> canonicalize(handyurl.parse("dns:www.archive.org")).getURLString()
-    'dns:www.archive.org'
     """
     if host_lowercase and url.host:
         url.host = url.host.lower()
@@ -122,34 +102,6 @@ def alphaReorderQuery(orig):
     """It's a shame that we can't use urlparse.parse_qsl() for this, but this
     function does keeps the trailing '=' if there is a query arg with no value:
     "?foo" vs "?foo=", and we want to exactly match the java version
-
-    These doctests are from IAURLCanonicalizerTest.java:
-
-    >>> alphaReorderQuery(None)
-    >>> alphaReorderQuery("")
-    ''
-    >>> alphaReorderQuery("")
-    ''
-    >>> alphaReorderQuery("a")
-    'a'
-    >>> alphaReorderQuery("ab")
-    'ab'
-    >>> alphaReorderQuery("a=1")
-    'a=1'
-    >>> alphaReorderQuery("ab=1")
-    'ab=1'
-    >>> alphaReorderQuery("a=1&")
-    '&a=1'
-    >>> alphaReorderQuery("a=1&b=1")
-    'a=1&b=1'
-    >>> alphaReorderQuery("b=1&a=1")
-    'a=1&b=1'
-    >>> alphaReorderQuery("a=a&a=a")
-    'a=a&a=a'
-    >>> alphaReorderQuery("a=b&a=a")
-    'a=a&a=b'
-    >>> alphaReorderQuery("b=b&a=b&b=a&a=a")
-    'a=a&a=b&b=a&b=b'
     """
 
 
@@ -178,21 +130,6 @@ def alphaReorderQuery(orig):
 _RE_WWWDIGITS = re.compile('www\d*\.')
 
 def massageHost(host):
-    """These doctests are from IAURLCanonicalizerTest.java:
-
-    >>> massageHost("foo.com")
-    'foo.com'
-    >>> massageHost("www.foo.com")
-    'foo.com'
-    >>> massageHost("www12.foo.com")
-    'foo.com'
-
-    >>> massageHost("www2foo.com")
-    'www2foo.com'
-    >>> massageHost("www2.www2foo.com")
-    'www2foo.com'
-    """
-
     m = _RE_WWWDIGITS.match(host)
     if m:
         return host[len(m.group(0)):]
@@ -202,15 +139,6 @@ def massageHost(host):
 # getDefaultPort()
 #_______________________________________________________________________________
 def getDefaultPort(scheme):
-    """These doctests are from IAURLCanonicalizerTest.java:
-
-    >>> getDefaultPort("foo")
-    0
-    >>> getDefaultPort("http")
-    80
-    >>> getDefaultPort("https")
-    443
-    """
     scheme_lower = scheme.lower()
     if 'http' == scheme_lower:
         return 80
@@ -218,10 +146,4 @@ def getDefaultPort(scheme):
         return 443
     else:
         return 0
-
-# main()
-#_______________________________________________________________________________
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
 
