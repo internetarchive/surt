@@ -11,14 +11,9 @@ python:
     - pypy # currently points to 3.6-dev
     - pypy3 # currently points to 3.6-dev
 
-before_install:
-    - sudo apt-get update
-    - pip install coveralls --use-mirrors
+script: 
+        - py.test -v --cov surt tests/
 
-before_script:
-    - pip install tox
+install:
+        - pip install . pytest coveralls
 
-script: py.test -v --cov surt tests/
-
-#after_success:
-    #coveralls
