@@ -11,6 +11,10 @@ env:
     - TOXENV=py27
     - TOXENV=py33
     - TOXENV=py34
+    - TOXENV=py35
+    - TOXENV=jython
+    - TOXENV=pypy
+    - TOXENV=pypy3
 
 before_install:
     - sudo apt-get update
