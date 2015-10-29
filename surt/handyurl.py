@@ -299,26 +299,26 @@ class handyurl(object):
 
     # getPublicPrefix
     #___________________________________________________________________________
-    def getPublicSuffix(self):
+    def getPublicPrefix(self):
         """Uses the tldextract module to get the subdomain, using the
         Public Suffix List.
 
         These doctests are based off the ones found in HandyURLTest.java:
 
         >>> h = handyurl(host='www.fool.com')
-        >>> h.getPublicSuffix()
+        >>> h.getPublicPrefix()
         'www'
 
         >>> h = handyurl(host='www.amazon.co.uk')
-        >>> h.getPublicSuffix()
+        >>> h.getPublicPrefix()
         'www'
 
         >>> h = handyurl(host='www.images.amazon.co.uk')
-        >>> h.getPublicSuffix()
+        >>> h.getPublicPrefix()
         'www.images'
 
         >>> h = handyurl(host='funky-images.fancy.co.jp')
-        >>> h.getPublicSuffix()
+        >>> h.getPublicPrefix()
         'funky-images'
         """
         return tldextract.extract(self.host).subdomain
