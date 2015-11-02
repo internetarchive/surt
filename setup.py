@@ -23,7 +23,7 @@ setup(name='surt',
       ],
       description='Sort-friendly URI Reordering Transform (SURT) python package.',
       long_description=open('README.md').read(),
-      url='https://github.com/rajbot/surt',
+      url='https://github.com/internetarchive/surt',
       zip_safe=True,
       install_requires=[
           'six',
