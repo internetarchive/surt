@@ -22,7 +22,7 @@ setup(name='surt',
         'License :: OSI Approved :: GNU Affero General Public License v3',
       ],
       description='Sort-friendly URI Reordering Transform (SURT) python package.',
-      long_description=open('README.md').read(),
+      long_description=open('README.rst').read(),
       url='https://github.com/internetarchive/surt',
       zip_safe=True,
       install_requires=[
