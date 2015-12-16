@@ -58,19 +58,6 @@ def surt(url, canonicalizer=None, **options):
     if url.startswith("filedesc"):
         return url
 
-    if url.startswith("warcinfo"):
-        return url
-
-    if url.startswith("dns:"):
-        res = hostToSURT(url[4:])
-        if options.get('trailing_comma'):
-            res += ','
-        res += ')'
-        return res
-
-    if url.startswith("whois://"):
-        return url
-
     if canonicalizer is None:
         canonicalizer = DefaultIAURLCanonicalizer.canonicalize
     else:

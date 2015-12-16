@@ -107,17 +107,8 @@ class handyurl(object):
             o = o._replace(netloc=o.netloc.rstrip(':'))
         port     = o.port     or None
 
-        """One more special-case for dns urls or broken http urls. From the docs:
-        Following the syntax specifications in RFC 1808, urlparse recognizes
-        a netloc only if it is properly introduced by ‘//’. Otherwise the input
-        is presumed to be a relative URL and thus to start with a path component.
-        """
-        if 'dns' == scheme:
-            hostname = o.path or None
-            path     = None
-        else:
-            hostname = o.hostname or None
-            path     = o.path     or None
+        hostname = o.hostname or None
+        path     = o.path     or None
 
         if scheme.startswith('http'):
             #deal with "http:////////////////www.vikings.com"
