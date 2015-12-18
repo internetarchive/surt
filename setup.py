@@ -15,7 +15,7 @@ class PyTest(TestCommand):
 
 
 setup(name='surt',
-      version='0.3b3',
+      version='0.3b4',
       author='rajbot',
       author_email='raj@archive.org',
       classifiers=[
