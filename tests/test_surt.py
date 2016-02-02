@@ -256,6 +256,7 @@ def test_stripQuerySessionID():
 
 def test_hostToSURT():
     assert surt.URLRegexTransformer.hostToSURT("www.archive.org") == 'org,archive,www'
+    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910") == '123.456.78.910'
 
 
 def test_surt():
