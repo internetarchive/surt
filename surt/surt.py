@@ -30,7 +30,7 @@ import DefaultIAURLCanonicalizer
 
 class CompositeCanonicalizer(object):
     def __init__(self, canonicalizers):
-        self.caonicalizers = [
+        self.canonicalizers = [
             self._normalize(canon) for canon in canonicalizers
             ]
     def __call__(self, hurl, **options):
@@ -43,7 +43,7 @@ class CompositeCanonicalizer(object):
             return canonicalizer
         if hasattr(canonicalizer, 'canonicalize'):
             return canonicalizer.canonicalize
-        raise AttributeError('canonicalizer must either is callable or have'
+        raise AttributeError('canonicalizer must either be callable or have'
                              ' "canonicalizer" method')
 
 # surt()
