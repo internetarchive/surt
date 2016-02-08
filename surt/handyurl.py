@@ -168,6 +168,7 @@ class handyurl(object):
                      surt=False,
                      public_suffix=False,
                      trailing_comma=False,
+                     reverse_ips=True,
                      **options):
 
         s = self.scheme + ':'
@@ -177,7 +178,7 @@ class handyurl(object):
             if public_suffix:
                 hostSrc = self.getPublicSuffix()
             if surt:
-                hostSrc = hostToSURT(hostSrc)
+                hostSrc = hostToSURT(hostSrc, reverse_ips)
 
         if hostSrc:
             if self.scheme != 'dns':
