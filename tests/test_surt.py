@@ -257,7 +257,6 @@ def test_stripQuerySessionID():
 def test_hostToSURT():
     assert surt.URLRegexTransformer.hostToSURT("www.archive.org") == 'org,archive,www'
 
-
 def test_surt():
     # These tests are from WaybackURLKeyMakerTest.java
 
@@ -320,3 +319,9 @@ def test_surt():
     assert surt.surt("warcinfo:foo.warc.gz", trailing_comma=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True, trailing_comma=True) == 'warcinfo:foo.warc.gz'
+
+def test_options():
+    assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
+    assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
+    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
+    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
