@@ -58,6 +58,10 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
     'http://archive.org/big'
     >>> canonicalize(handyurl.parse("dns:www.archive.org")).getURLString()
     'dns:www.archive.org'
+    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008&jsessionid=f030eacc7e49c4ca0b077922347418418766")).getURLString()
+    'http://nsf.gov/statistics/sed/2009/sed_2009.zip?jsessionid=f030eacc7e49c4ca0b077922347418418766'
+    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008")).getURLString()
+    'http://nsf.gov/statistics/sed/2009/sed_2009.zip'
     """
     if host_lowercase and url.host:
         url.host = url.host.lower()
@@ -94,17 +98,15 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
 
     query = url.query
     if query:
-        if '' == query and query_strip_empty:
-            query = None
-        elif len(query) > 0:
+        if len(query) > 0:
             if query_strip_session_id:
-                #This function expects the query to start with a '?'
-                query = stripQuerySessionID('?'+query)
-                query = query[1:] #now strip off '?' that we just added
+                query = stripQuerySessionID(query)
             if query_lowercase:
                 query = query.lower()
             if query_alpha_reorder:
                 query = alphaReorderQuery(query)
+        if '' == query and query_strip_empty:
+            query = None
         url.query = query
     else:
         if query_strip_empty:

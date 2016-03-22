@@ -66,7 +66,7 @@ def stripPathSessionID(path):
 
 # stripQuerySessionID
 #_______________________________________________________________________________
-def stripQuerySessionID(path):
+def stripQuerySessionID(query):
     """These doctests are from IAURLCanonicalizerTest.java:
 
     >>> #base = "http://www.archive.org/index.html"
@@ -148,22 +148,22 @@ def stripQuerySessionID(path):
     '?requestID=200608200458360%2E39414378'
 
     """
-    patterns = [re.compile("^(.+)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
-                re.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
+    patterns = [re.compile("^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+                re.compile("^(.*)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+                re.compile("^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+                re.compile("^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
+                re.compile("^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
                ]
 
     for pattern in patterns:
-        m = pattern.match(path)
+        m = pattern.match(query)
         if m:
             if m.group(2):
-                path = m.group(1) + m.group(2)
+                query = m.group(1) + m.group(2)
             else:
-                path = m.group(1)
+                query = m.group(1)
 
-    return path
+    return query
 
 
 # hostToSURT
