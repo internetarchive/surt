@@ -41,6 +41,27 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  query_strip_empty=True, query_alpha_reorder=True,
                  hash_strip=True, **_ignored):
     """The input url is a handyurl instance
+
+    These doctests are from IAURLCanonicalizerTest.java:
+
+    >>> canonicalize(handyurl.parse("http://ARCHIVE.ORG/")).getURLString()
+    'http://archive.org/'
+    >>> canonicalize(handyurl.parse("http://www.archive.org:80/")).getURLString()
+    'http://archive.org/'
+    >>> canonicalize(handyurl.parse("https://www.archive.org:80/")).getURLString()
+    'https://archive.org:80/'
+    >>> canonicalize(handyurl.parse("http://www.archive.org:443/")).getURLString()
+    'http://archive.org:443/'
+    >>> canonicalize(handyurl.parse("https://www.archive.org:443/")).getURLString()
+    'https://archive.org/'
+    >>> canonicalize(handyurl.parse("http://www.archive.org/big/")).getURLString()
+    'http://archive.org/big'
+    >>> canonicalize(handyurl.parse("dns:www.archive.org")).getURLString()
+    'dns:www.archive.org'
+    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008&jsessionid=f030eacc7e49c4ca0b077922347418418766")).getURLString()
+    'http://nsf.gov/statistics/sed/2009/sed_2009.zip?jsessionid=f030eacc7e49c4ca0b077922347418418766'
+    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008")).getURLString()
+    'http://nsf.gov/statistics/sed/2009/sed_2009.zip'
     """
     if host_lowercase and url.host:
         url.host = url.host.lower()
@@ -77,17 +98,15 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
 
     query = url.query
     if query:
-        if '' == query and query_strip_empty:
-            query = None
-        elif len(query) > 0:
+        if len(query) > 0:
             if query_strip_session_id:
-                #This function expects the query to start with a '?'
-                query = stripQuerySessionID('?'+query)
-                query = query[1:] #now strip off '?' that we just added
+                query = stripQuerySessionID(query)
             if query_lowercase:
                 query = query.lower()
             if query_alpha_reorder:
                 query = alphaReorderQuery(query)
+        if '' == query and query_strip_empty:
+            query = None
         url.query = query
     else:
         if query_strip_empty:

@@ -47,23 +47,23 @@ def stripPathSessionID(path):
 # stripQuerySessionID
 #_______________________________________________________________________________
 _RES_QUERY_SESSIONID = [
-    re.compile("^(.+)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.+)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.+)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.+)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
-    re.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
+    re.compile("^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.*)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile("^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
+    re.compile("^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
     ]
 
-def stripQuerySessionID(path):
+def stripQuerySessionID(query):
     for pattern in _RES_QUERY_SESSIONID:
-        m = pattern.match(path)
+        m = pattern.match(query)
         if m:
             if m.group(2):
-                path = m.group(1) + m.group(2)
+                query = m.group(1) + m.group(2)
             else:
-                path = m.group(1)
+                query = m.group(1)
 
-    return path
+    return query
 
 
 # hostToSURT
