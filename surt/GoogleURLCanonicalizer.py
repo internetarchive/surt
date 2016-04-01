@@ -33,10 +33,13 @@ import encodings.idna
 
 from surt.handyurl import handyurl
 
-from six.moves.urllib.parse import quote, unquote
+try:
+    from urllib.parse import quote_from_bytes, unquote_to_bytes
+except:
+    from urllib import quote as quote_from_bytes, unquote as unquote_to_bytes
 from six import text_type, binary_type
 
-# unescapeRepeatedly()
+# canonicalize()
 #_______________________________________________________________________________
 def canonicalize(url, **_ignored):
     url.hash = None
@@ -48,31 +51,16 @@ def canonicalize(url, **_ignored):
         url.query = minimalEscape(url.query)
 
     if url.host:
-        hostE = unescapeRepeatedly(url.host)
-
-        # if the host was an ascii string of percent-encoded bytes that represent
-        # non-ascii unicode chars, then promote hostE from str to unicode.
-        # e.g. "http://www.t%EF%BF%BD%04.82.net/", which contains the unicode replacement char
-        if isinstance(hostE, binary_type):
-            try:
-                hostE.decode('ascii')
-            except UnicodeDecodeError:
-                hostE = hostE.decode('utf-8', 'ignore')
-
-
-        host = None
+        host = unescapeRepeatedly(url.host)
         try:
-            # Note: I copied the use of the ToASCII(hostE) from
-            # the java code. This function implements RFC3490, which
-            # requires that each component of the hostname (i.e. each label)
-            # be encodeced separately, and doesn't work correctly with
-            # full hostnames. So use 'idna' encoding instead.
-            #host = encodings.idna.ToASCII(hostE)
-            host = hostE.encode('idna').decode('utf-8')
-        except ValueError:
-            host = hostE
+            host.decode('ascii')
+        except UnicodeDecodeError:
+            try:
+                host = host.decode('utf-8', 'ignore').encode('idna')
+            except ValueError:
+                pass
 
-        host = host.replace('..', '.').strip('.')
+        host = host.replace(b'..', b'.').strip(b'.')
 
         ip = attemptIPFormats(host)
         if ip:
@@ -95,10 +83,10 @@ def canonicalize(url, **_ignored):
 
 def normalizePath(path):
     if not path:
-        return '/'
+        return b'/'
 
     #gives an empty trailing element if path ends with '/':
-    paths       = path.split('/')
+    paths       = path.split(b'/')
     keptPaths   = []
     first       = True
 
@@ -106,10 +94,10 @@ def normalizePath(path):
         if first:
             first = False
             continue
-        elif '.' == p:
+        elif b'.' == p:
             # skip
             continue
-        elif '..' == p:
+        elif b'..' == p:
             #pop the last path, if present:
             if len(keptPaths) > 0:
                 keptPaths = keptPaths[:-1]
@@ -119,7 +107,7 @@ def normalizePath(path):
         else:
             keptPaths.append(p)
 
-    path = '/'
+    path = b'/'
 
     # If the path ends in '/', then the last element of keptPaths will be ''
     # Since we add a trailing '/' after the second-to-last element of keptPaths
@@ -130,13 +118,13 @@ def normalizePath(path):
             p = keptPaths[i]
             if len(p) > 0:
                 #this will omit multiple slashes:
-                path += p + '/'
+                path += p + b'/'
         path += keptPaths[numKept-1]
 
     return path
 
-OCTAL_IP = re.compile(r"^(0[0-7]*)(\.[0-7]+)?(\.[0-7]+)?(\.[0-7]+)?$")
-DECIMAL_IP = re.compile(r"^([1-9][0-9]*)(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?$")
+OCTAL_IP = re.compile(br"^(0[0-7]*)(\.[0-7]+)?(\.[0-7]+)?(\.[0-7]+)?$")
+DECIMAL_IP = re.compile(br"^([1-9][0-9]*)(\.[0-9]+)?(\.[0-9]+)?(\.[0-9]+)?$")
 
 # attemptIPFormats()
 #_______________________________________________________________________________
@@ -146,19 +134,20 @@ def attemptIPFormats(host):
 
     if host.isdigit():
         #mask hostname to lower four bytes to workaround issue with liveweb arc files
-        return socket.inet_ntoa(struct.pack('>L', int(host) & 0xffffffff))
+        return socket.inet_ntoa(
+                struct.pack('>L', int(host) & 0xffffffff)).encode('ascii')
     else:
         m = DECIMAL_IP.match(host)
         if m:
             try:
-                return socket.gethostbyname_ex(host)[2][0]
+                return socket.gethostbyname_ex(host)[2][0].encode('ascii')
             except (socket.gaierror, socket.herror):
                 return None
         else:
             m = OCTAL_IP.match(host)
             if m:
                 try:
-                    return socket.gethostbyname_ex(host)[2][0]
+                    return socket.gethostbyname_ex(host)[2][0].encode('ascii')
                 except socket.gaierror:
                     return None
 
@@ -175,13 +164,9 @@ def minimalEscape(input):
 def escapeOnce(input):
     """escape everything outside of 32-128, except #"""
     if input:
-        # If input is a unicode type, we need to chose an encoding before
-        # percent encoding, since different encodings of the same unicode
-        # characters will result in different surts.
-        # We will use utf-8 for consistency.
-        if isinstance(input, text_type):
-            input = input.encode('utf-8')
-        return quote(input, """!"$&'()*+,-./:;<=>?@[\]^_`{|}~""")
+        return quote_from_bytes(
+                input, safe=b'''!"$&'()*+,-./:;<=>?@[\]^_`{|}~''').encode(
+                        'ascii')
     else:
         return input
 
@@ -189,11 +174,12 @@ def escapeOnce(input):
 # unescapeRepeatedly()
 #_______________________________________________________________________________
 def unescapeRepeatedly(input):
+    '''Argument may be str or bytes. Returns bytes.'''
     if None == input:
         return None
 
     while True:
-        un = unquote(input)
+        un = unquote_to_bytes(input)
         if un == input:
             return input
         input = un

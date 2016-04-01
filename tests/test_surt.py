@@ -28,15 +28,15 @@ def test_handyurl_parse():
     ###From Common Crawl, host ends with ':' without a port number
     assert handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl() == 'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
 
-    assert handyurl.parse("mailto:bot@archive.org").scheme == 'mailto'
+    assert handyurl.parse("mailto:bot@archive.org").scheme == b'mailto'
     assert handyurl.parse("mailto:bot@archive.org").geturl() == 'mailto:bot@archive.org'
 
 def test_getPublicSuffix():
     # These tests are based off the ones found in HandyURLTest.java
-    assert handyurl(host='www.fool.com').getPublicSuffix() == 'fool.com'
-    assert handyurl(host='www.amazon.co.uk').getPublicSuffix() == 'amazon.co.uk'
-    assert handyurl(host='www.images.amazon.co.uk').getPublicSuffix() == 'amazon.co.uk'
-    assert handyurl(host='funky-images.fancy.co.jp').getPublicSuffix() == 'fancy.co.jp'
+    assert handyurl(host='www.fool.com').getPublicSuffix() == b'fool.com'
+    assert handyurl(host='www.amazon.co.uk').getPublicSuffix() == b'amazon.co.uk'
+    assert handyurl(host='www.images.amazon.co.uk').getPublicSuffix() == b'amazon.co.uk'
+    assert handyurl(host='funky-images.fancy.co.jp').getPublicSuffix() == b'fancy.co.jp'
 
 def test_getPublicPrefix():
     # These tests are based off the ones found in HandyURLTest.java
@@ -112,28 +112,28 @@ def test_GoogleURLCanonicalizer():
 def test_attemptIPFormats():
     # The tests are copied from GoogleURLCanonicalizerTest.java
     assert surt.GoogleURLCanonicalizer.attemptIPFormats(None) is None
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("www.foo.com") is None
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("127.0.0.1") == '127.0.0.1'
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("017.0.0.1") == '15.0.0.1'
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("168.188.99.26") == '168.188.99.26'
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"www.foo.com") is None
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"127.0.0.1") == b'127.0.0.1'
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"017.0.0.1") == b'15.0.0.1'
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"168.188.99.26") == b'168.188.99.26'
     #java version returns null, ours returns the correct ipv4
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("10.0.258") == '10.0.1.2'
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("1.2.3.256") is None #returns None
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"10.0.258") == b'10.0.1.2'
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"1.2.3.256") is None #returns None
 
     # ARC files from the wayback machine's liveweb proxy contain numeric
     # hostnames > 2^32 for some reason. We'll copy the behavior of the java code.
-    assert surt.GoogleURLCanonicalizer.attemptIPFormats("39024579298") == '22.11.210.226'
+    assert surt.GoogleURLCanonicalizer.attemptIPFormats(b"39024579298") == b'22.11.210.226'
 
 def test_unescapeRepeatedly():
     # The tests are copied from GoogleURLCanonicalizerTest.java
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%!A%21%21%25") == '%!A!!%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%") == '%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%2") == '%2'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%25") == '%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%25%") == '%%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%2525") == '%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%252525") == '%'
-    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly("%25%32%35") == '%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%!A%21%21%25") == b'%!A!!%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%") == b'%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%2") == b'%2'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%25") == b'%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%25%") == b'%%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%2525") == b'%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%252525") == b'%'
+    assert surt.GoogleURLCanonicalizer.unescapeRepeatedly(b"%25%32%35") == b'%'
 
 def test_IAURLCanonicalizer():
     # These tests are from IAURLCanonicalizerTest.java
@@ -148,114 +148,114 @@ def test_IAURLCanonicalizer():
 def test_alphaReorderQuery():
     # These tests are from IAURLCanonicalizerTest.java
     assert surt.IAURLCanonicalizer.alphaReorderQuery(None) is None
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("") == ''
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("") == ''
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a") == 'a'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("ab") == 'ab'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a=1") == 'a=1'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("ab=1") == 'ab=1'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a=1&") == '&a=1'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a=1&b=1") == 'a=1&b=1'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("b=1&a=1") == 'a=1&b=1'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a=a&a=a") == 'a=a&a=a'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("a=b&a=a") == 'a=a&a=b'
-    assert surt.IAURLCanonicalizer.alphaReorderQuery("b=b&a=b&b=a&a=a") == 'a=a&a=b&b=a&b=b'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"") == b''
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"") == b''
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a") == b'a'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"ab") == b'ab'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a=1") == b'a=1'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"ab=1") == b'ab=1'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a=1&") == b'&a=1'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a=1&b=1") == b'a=1&b=1'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"b=1&a=1") == b'a=1&b=1'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a=a&a=a") == b'a=a&a=a'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"a=b&a=a") == b'a=a&a=b'
+    assert surt.IAURLCanonicalizer.alphaReorderQuery(b"b=b&a=b&b=a&a=a") == b'a=a&a=b&b=a&b=b'
 
 def test_massageHost():
     # These tests are from IAURLCanonicalizerTest.java
-    assert surt.IAURLCanonicalizer.massageHost("foo.com") == 'foo.com'
-    assert surt.IAURLCanonicalizer.massageHost("www.foo.com") == 'foo.com'
-    assert surt.IAURLCanonicalizer.massageHost("www12.foo.com") == 'foo.com'
+    assert surt.IAURLCanonicalizer.massageHost(b"foo.com") == b'foo.com'
+    assert surt.IAURLCanonicalizer.massageHost(b"www.foo.com") == b'foo.com'
+    assert surt.IAURLCanonicalizer.massageHost(b"www12.foo.com") == b'foo.com'
 
-    assert surt.IAURLCanonicalizer.massageHost("www2foo.com") == 'www2foo.com'
-    assert surt.IAURLCanonicalizer.massageHost("www2.www2foo.com") == 'www2foo.com'
+    assert surt.IAURLCanonicalizer.massageHost(b"www2foo.com") == b'www2foo.com'
+    assert surt.IAURLCanonicalizer.massageHost(b"www2.www2foo.com") == b'www2foo.com'
 
 def test_getDefaultPort():
     # These tests are from IAURLCanonicalizerTest.java
-    assert surt.IAURLCanonicalizer.getDefaultPort("foo") == 0
-    assert surt.IAURLCanonicalizer.getDefaultPort("http") == 80
-    assert surt.IAURLCanonicalizer.getDefaultPort("https") == 443
+    assert surt.IAURLCanonicalizer.getDefaultPort(b"foo") == 0
+    assert surt.IAURLCanonicalizer.getDefaultPort(b"http") == 80
+    assert surt.IAURLCanonicalizer.getDefaultPort(b"https") == 443
 
 def test_stripPathSessionID():
     # These tests are from IAURLCanonicalizerTest.java
     # Check ASP_SESSIONID2:
-    assert surt.URLRegexTransformer.stripPathSessionID("/(S(4hqa0555fwsecu455xqckv45))/mileg.aspx") == '/mileg.aspx'
+    assert surt.URLRegexTransformer.stripPathSessionID(b"/(S(4hqa0555fwsecu455xqckv45))/mileg.aspx") == b'/mileg.aspx'
 
     # Check ASP_SESSIONID2 (again):
-    assert surt.URLRegexTransformer.stripPathSessionID("/(4hqa0555fwsecu455xqckv45)/mileg.aspx") == '/mileg.aspx'
+    assert surt.URLRegexTransformer.stripPathSessionID(b"/(4hqa0555fwsecu455xqckv45)/mileg.aspx") == b'/mileg.aspx'
 
     # Check ASP_SESSIONID3:
-    assert surt.URLRegexTransformer.stripPathSessionID("/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules") == '/mileg.aspx?page=sessionschedules'
+    assert surt.URLRegexTransformer.stripPathSessionID(b"/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules") == b'/mileg.aspx?page=sessionschedules'
 
     # '@' in path:
-    assert surt.URLRegexTransformer.stripPathSessionID("/photos/36050182@N05/") == '/photos/36050182@N05/'
+    assert surt.URLRegexTransformer.stripPathSessionID(b"/photos/36050182@N05/") == b'/photos/36050182@N05/'
 
 
 def test_stripQuerySessionID():
     #base = "http://www.archive.org/index.html"
-    base = ""
-    str32id = "0123456789abcdefghijklemopqrstuv"
-    url = base + "?jsessionid=" + str32id
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?'
+    base = b""
+    str32id = b"0123456789abcdefghijklemopqrstuv"
+    url = base + b"?jsessionid=" + str32id
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?'
 
     # Test that we don't strip if not 32 chars only.
-    url = base + "?jsessionid=" + str32id + '0'
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?jsessionid=0123456789abcdefghijklemopqrstuv0'
+    url = base + b"?jsessionid=" + str32id + b'0'
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?jsessionid=0123456789abcdefghijklemopqrstuv0'
 
     # Test what happens when followed by another key/value pair.
-    url = base + "?jsessionid=" + str32id + "&x=y"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?x=y'
+    url = base + b"?jsessionid=" + str32id + b"&x=y"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?x=y'
 
     # Test what happens when followed by another key/value pair and
     # prefixed by a key/value pair.
-    url = base + "?one=two&jsessionid=" + str32id + "&x=y"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?one=two&x=y'
+    url = base + b"?one=two&jsessionid=" + str32id + b"&x=y"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?one=two&x=y'
 
     # Test what happens when prefixed by a key/value pair.
-    url = base + "?one=two&jsessionid=" + str32id
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?one=two&'
+    url = base + b"?one=two&jsessionid=" + str32id
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?one=two&'
 
     # Test aspsession.
-    url = base + "?aspsessionidABCDEFGH=" + "ABCDEFGHIJKLMNOPQRSTUVWX" + "&x=y"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?x=y'
+    url = base + b"?aspsessionidABCDEFGH=" + b"ABCDEFGHIJKLMNOPQRSTUVWX" + b"&x=y"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?x=y'
 
     # Test archive phpsession.
-    url = base + "?phpsessid=" + str32id + "&x=y"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?x=y'
+    url = base + b"?phpsessid=" + str32id + b"&x=y"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?x=y'
 
     # With prefix too.
-    url = base + "?one=two&phpsessid=" + str32id + "&x=y"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?one=two&x=y'
+    url = base + b"?one=two&phpsessid=" + str32id + b"&x=y"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?one=two&x=y'
 
     # With only prefix
-    url = base + "?one=two&phpsessid=" + str32id
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?one=two&'
+    url = base + b"?one=two&phpsessid=" + str32id
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?one=two&'
 
     # Test sid.
-    url = base + "?" + "sid=9682993c8daa2c5497996114facdc805" + "&x=y";
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?x=y'
+    url = base + b"?" + b"sid=9682993c8daa2c5497996114facdc805" + b"&x=y";
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?x=y'
 
     # Igor test.
-    url = base + "?" + "sid=9682993c8daa2c5497996114facdc805" + "&" + "jsessionid=" + str32id
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?'
+    url = base + b"?" + b"sid=9682993c8daa2c5497996114facdc805" + b"&" + b"jsessionid=" + str32id
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?'
 
-    url = "?CFID=1169580&CFTOKEN=48630702&dtstamp=22%2F08%2F2006%7C06%3A58%3A11"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?dtstamp=22%2F08%2F2006%7C06%3A58%3A11'
+    url = b"?CFID=1169580&CFTOKEN=48630702&dtstamp=22%2F08%2F2006%7C06%3A58%3A11"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?dtstamp=22%2F08%2F2006%7C06%3A58%3A11'
 
-    url = "?CFID=12412453&CFTOKEN=15501799&dt=19_08_2006_22_39_28"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?dt=19_08_2006_22_39_28'
+    url = b"?CFID=12412453&CFTOKEN=15501799&dt=19_08_2006_22_39_28"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?dt=19_08_2006_22_39_28'
 
-    url = "?CFID=14475712&CFTOKEN=2D89F5AF-3048-2957-DA4EE4B6B13661AB&r=468710288378&m=forgotten"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?r=468710288378&m=forgotten'
+    url = b"?CFID=14475712&CFTOKEN=2D89F5AF-3048-2957-DA4EE4B6B13661AB&r=468710288378&m=forgotten"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?r=468710288378&m=forgotten'
 
-    url = "?CFID=16603925&CFTOKEN=2AE13EEE-3048-85B0-56CEDAAB0ACA44B8"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?'
+    url = b"?CFID=16603925&CFTOKEN=2AE13EEE-3048-85B0-56CEDAAB0ACA44B8"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?'
 
-    url = "?CFID=4308017&CFTOKEN=63914124&requestID=200608200458360%2E39414378"
-    assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?requestID=200608200458360%2E39414378'
+    url = b"?CFID=4308017&CFTOKEN=63914124&requestID=200608200458360%2E39414378"
+    assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?requestID=200608200458360%2E39414378'
 
 def test_hostToSURT():
-    assert surt.URLRegexTransformer.hostToSURT("www.archive.org") == 'org,archive,www'
+    assert surt.URLRegexTransformer.hostToSURT(b"www.archive.org") == b'org,archive,www'
 
 def test_surt():
     # These tests are from WaybackURLKeyMakerTest.java

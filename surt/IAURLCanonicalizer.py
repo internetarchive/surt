@@ -40,33 +40,11 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  query_lowercase=True, query_strip_session_id=True,
                  query_strip_empty=True, query_alpha_reorder=True,
                  hash_strip=True, **_ignored):
-    """The input url is a handyurl instance
-
-    These doctests are from IAURLCanonicalizerTest.java:
-
-    >>> canonicalize(handyurl.parse("http://ARCHIVE.ORG/")).getURLString()
-    'http://archive.org/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org:80/")).getURLString()
-    'http://archive.org/'
-    >>> canonicalize(handyurl.parse("https://www.archive.org:80/")).getURLString()
-    'https://archive.org:80/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org:443/")).getURLString()
-    'http://archive.org:443/'
-    >>> canonicalize(handyurl.parse("https://www.archive.org:443/")).getURLString()
-    'https://archive.org/'
-    >>> canonicalize(handyurl.parse("http://www.archive.org/big/")).getURLString()
-    'http://archive.org/big'
-    >>> canonicalize(handyurl.parse("dns:www.archive.org")).getURLString()
-    'dns:www.archive.org'
-    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008&jsessionid=f030eacc7e49c4ca0b077922347418418766")).getURLString()
-    'http://nsf.gov/statistics/sed/2009/sed_2009.zip?jsessionid=f030eacc7e49c4ca0b077922347418418766'
-    >>> canonicalize(handyurl.parse("http://www.nsf.gov/statistics/sed/2009/SED_2009.zip?CFID=14387305&CFTOKEN=72942008")).getURLString()
-    'http://nsf.gov/statistics/sed/2009/sed_2009.zip'
-    """
+    """The input url is a handyurl instance"""
     if host_lowercase and url.host:
         url.host = url.host.lower()
 
-    if host_massage and url.host and (url.scheme != 'dns'): ###java version calls massageHost regardless of scheme
+    if host_massage and url.host and (url.scheme != b'dns'): ###java version calls massageHost regardless of scheme
         url.host = massageHost(url.host)
 
     if auth_strip_user:
@@ -81,17 +59,17 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
             url.port = handyurl.DEFAULT_PORT
 
     path = url.path
-    if path_strip_empty and '/' == path:
+    if path_strip_empty and b'/' == path:
         url.path = None
     else:
         if path_lowercase and path:
             path = path.lower()
         if path_strip_session_id and path:
             path = stripPathSessionID(path)
-        if path_strip_empty and '/' == path:
+        if path_strip_empty and b'/' == path:
             path = None
         if path_strip_trailing_slash_unless_empty and path:
-            if path.endswith("/") and len(path)>1:
+            if path.endswith(b'/') and len(path)>1:
                 path = path[:-1]
 
         url.path = path
@@ -105,7 +83,7 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                 query = query.lower()
             if query_alpha_reorder:
                 query = alphaReorderQuery(query)
-        if '' == query and query_strip_empty:
+        if b'' == query and query_strip_empty:
             query = None
         url.query = query
     else:
@@ -130,23 +108,23 @@ def alphaReorderQuery(orig):
     if len(orig) <= 1:
         return orig
 
-    args = orig.split("&")
-    qas = [tuple(arg.split('=', 1)) for arg in args]
+    args = orig.split(b'&')
+    qas = [tuple(arg.split(b'=', 1)) for arg in args]
     qas.sort()
 
-    s = ''
+    s = b''
     for t in qas:
         if 1 == len(t):
-            s += t[0] + '&'
+            s += t[0] + b'&'
         else:
-            s += t[0] + '=' + t[1] + '&'
+            s += t[0] + b'=' + t[1] + b'&'
 
     return s[:-1] #remove last &
 
 
 # massageHost()
 #_______________________________________________________________________________
-_RE_WWWDIGITS = re.compile('www\d*\.')
+_RE_WWWDIGITS = re.compile(b'www\d*\.')
 
 def massageHost(host):
     m = _RE_WWWDIGITS.match(host)
@@ -159,9 +137,9 @@ def massageHost(host):
 #_______________________________________________________________________________
 def getDefaultPort(scheme):
     scheme_lower = scheme.lower()
-    if 'http' == scheme_lower:
+    if b'http' == scheme_lower:
         return 80
-    elif 'https' == scheme_lower:
+    elif b'https' == scheme_lower:
         return 443
     else:
         return 0
