@@ -20,10 +20,18 @@
 #
 #     The surt source is hosted at https://github.com/internetarchive/surt
 
+from __future__ import absolute_import
+
 import re
 import tldextract
-from urlparse import urlsplit
-from URLRegexTransformer import hostToSURT
+
+from six.moves.urllib.parse import urlsplit
+
+from surt.URLRegexTransformer import hostToSURT
+
+_RE_MULTIPLE_PROTOCOLS = re.compile(r'^(https?://)+')
+_RE_HAS_PROTOCOL = re.compile("^([a-zA-Z][a-zA-Z0-9\+\-\.]*):")
+_RE_SPACES = re.compile('[\n\r\t]')
 
 class handyurl(object):
     """A python port of the archive-commons org.archive.url HandyURL class
@@ -54,7 +62,7 @@ class handyurl(object):
     #___________________________________________________________________________
     def __init__(self, scheme=None, authUser=None, authPass=None,
                  host=None, port=DEFAULT_PORT, path=None,
-                 query=None, hash=None, opaque=None, last_delimiter=None):
+                 query=None, hash=None, last_delimiter=None):
         self.scheme   = scheme
         self.authUser = authUser
         self.authPass = authPass
@@ -63,7 +71,6 @@ class handyurl(object):
         self.path     = path
         self.query    = query
         self.hash     = hash
-        self.opaque   = opaque
         self.last_delimiter = last_delimiter #added in python version
 
     # parse() classmethod
@@ -73,57 +80,18 @@ class handyurl(object):
         u"""This method was in the java URLParser class, but we don't need
         a whole class to parse a url, when we can just use python's urlparse.
 
-        These doctests come from URLParserTest.java:
-
-        >>> handyurl.parse("http://www.archive.org/index.html#foo").geturl()
-        'http://www.archive.org/index.html#foo'
-
-        >>> handyurl.parse("http://www.archive.org/").geturl()
-        'http://www.archive.org/'
-
-        >>> handyurl.parse("http://www.archive.org").geturl()
-        'http://www.archive.org'
-
-        >>> handyurl.parse("http://www.archive.org?").geturl()
-        'http://www.archive.org?'
-
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?query#foo").geturl()
-        'http://www.archive.org:8080/index.html?query#foo'
-
-        >>> handyurl.parse("http://www.archive.org:8080/index.html?#foo").geturl()
-        'http://www.archive.org:8080/index.html#foo'
-
-        >>> handyurl.parse("http://www.archive.org:8080?#foo").geturl()
-        'http://www.archive.org:8080/#foo'
-
-        >>> print handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()
-        http://b\xfccher.ch:8080/#foo
-
-        >>> print handyurl.parse(u"dns:bücher.ch").geturl()
-        dns:b\xfccher.ch
-
-        ###From Tymm:
-        >>> handyurl.parse("http:////////////////www.vikings.com").geturl()
-        'http://www.vikings.com/'
-        >>> handyurl.parse("http://https://order.1and1.com").geturl()
-        'https://order.1and1.com'
-
-        ###From Common Crawl, host ends with ':' without a port number
-        >>> handyurl.parse("http://mineral.galleries.com:/minerals/silicate/chabazit/chabazit.htm").geturl()
-        'http://mineral.galleries.com/minerals/silicate/chabazit/chabazit.htm'
         """
+        # Note RE_SPACES does not match regular space (0x20). That is,
+        # regular spaces are removed at head and tail, but not in the middle.
+        # There's a test case for GoogleURLCanonicalizer.canonicalize that
+        # asserts this behavior.
         url = url.strip()
-        url = re.sub('[\n\r\t]', '', url)
-
-        ### DNS URLs are treated separately as opaque urls by URLParser.java
-        # However, we want to surtify dns urls as well.
-        if re.match("^(filedesc|warcinfo):.*", url):
-            return cls(opaque=url)
+        url = _RE_SPACES.sub('', url)
 
         url = cls.addDefaultSchemeIfNeeded(url)
 
         #From Tymm: deal with http://https/order.1and1.com
-        url = re.sub('^(https?://)+', r'\1', url)
+        url = _RE_MULTIPLE_PROTOCOLS.sub(lambda m: m.group(1), url)
 
         """The java code seems to use this regex:
         re.compile("^(([a-zA-Z][a-zA-Z0-9\+\-\.]*):)?((//([^/?#]*))?([^?#]*)(\?([^#]*))?)?(#(.*))?")
@@ -139,17 +107,8 @@ class handyurl(object):
             o = o._replace(netloc=o.netloc.rstrip(':'))
         port     = o.port     or None
 
-        """One more special-case for dns urls or broken http urls. From the docs:
-        Following the syntax specifications in RFC 1808, urlparse recognizes
-        a netloc only if it is properly introduced by ‘//’. Otherwise the input
-        is presumed to be a relative URL and thus to start with a path component.
-        """
-        if 'dns' == scheme:
-            hostname = o.path or None
-            path     = None
-        else:
-            hostname = o.hostname or None
-            path     = o.path     or None
+        hostname = o.hostname or None
+        path     = o.path     or None
 
         if scheme.startswith('http'):
             #deal with "http:////////////////www.vikings.com"
@@ -180,12 +139,8 @@ class handyurl(object):
         if not url:
             return url
 
-        ###raj: DNS URLs are treated separately as opaque urls by URLParser.java,
-        #but we want to surtify dns urls as well
-        if url.startswith('dns:'):
-            return url
-
-        if re.match("^(http|https|ftp|mms|rtsp|wais)://.*", url):
+        ###noah: accept anything that looks like it starts with a scheme:
+        if _RE_HAS_PROTOCOL.match(url):
             return url
         else:
             return "http://"+url
@@ -200,44 +155,49 @@ class handyurl(object):
 
     # getURLString()
     #___________________________________________________________________________
-    def getURLString(self, surt=False, public_suffix=False):
+    def getURLString(self,
+                     surt=False,
+                     public_suffix=False,
+                     trailing_comma=False,
+                     **options):
 
-        if None != self.opaque:
-            return self.opaque
-
-        if 'dns' == self.scheme:
-            s = self.scheme + ':'   ###java version adds :// regardless of scheme
-        else:                       ###java version uses opaque type for dns urls, but this version supports dns urls
-            s = self.scheme + '://'
-        if surt:
-            s += "("
-
-        if self.authUser:
-            s += self.authUser
-            if self.authPass:
-                s += self.authPass
-            s += '@'
+        s = self.scheme + ':'
 
         hostSrc = self.host
-        if public_suffix:
-            hostSrc = self.getPublicSuffix()
-        if surt:
-            hostSrc = hostToSURT(hostSrc)
-        s += hostSrc
+        if hostSrc:
+            if public_suffix:
+                hostSrc = self.getPublicSuffix()
+            if surt:
+                hostSrc = hostToSURT(hostSrc)
 
-        if self.port != self.DEFAULT_PORT:
-            s += ":%d" % self.port
+        if hostSrc:
+            if self.scheme != 'dns':
+                s += '//'
 
-        if surt:
-            s += ')'
+            if surt:
+                s += "("
 
-        hasPath = (None != self.path) and (len(self.path) > 0)
-        if hasPath:
+            if self.authUser:
+                s += self.authUser
+                if self.authPass:
+                    s += self.authPass
+                s += '@'
+
+            s += hostSrc
+
+            if self.port != self.DEFAULT_PORT:
+                s += ":%d" % self.port
+
+            if surt:
+                if trailing_comma:
+                    s += ','
+                s += ')'
+
+        if self.path:
             s += self.path
-        else:
-            if (None != self.query) or (None != self.hash):
-                #must have '/' with query or hash:
-                s += '/'
+        elif self.query is not None or self.hash is not None:
+            #must have '/' with query or hash:
+            s += '/'
 
         if None != self.query:
             s += '?' + self.query
@@ -254,53 +214,14 @@ class handyurl(object):
     def getPublicSuffix(self):
         """Uses the tldextract module to get the public suffix via the
         Public Suffix List.
-
-        These doctests are based off the ones found in HandyURLTest.java:
-
-        >>> h = handyurl(host='www.fool.com')
-        >>> h.getPublicSuffix()
-        'fool.com'
-
-        >>> h = handyurl(host='www.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'amazon.co.uk'
-
-        >>> h = handyurl(host='www.images.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'amazon.co.uk'
-
-        >>> h = handyurl(host='funky-images.fancy.co.jp')
-        >>> h.getPublicSuffix()
-        'fancy.co.jp'
         """
-
-        r = tldextract.extract(self.host)
-        return "%s.%s" % (r.domain, r.tld)
-
+        return tldextract.extract(self.host).registered_domain
 
     # getPublicPrefix
     #___________________________________________________________________________
-    def getPublicSuffix(self):
+    def getPublicPrefix(self):
         """Uses the tldextract module to get the subdomain, using the
         Public Suffix List.
-
-        These doctests are based off the ones found in HandyURLTest.java:
-
-        >>> h = handyurl(host='www.fool.com')
-        >>> h.getPublicSuffix()
-        'www'
-
-        >>> h = handyurl(host='www.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'www'
-
-        >>> h = handyurl(host='www.images.amazon.co.uk')
-        >>> h.getPublicSuffix()
-        'www.images'
-
-        >>> h = handyurl(host='funky-images.fancy.co.jp')
-        >>> h.getPublicSuffix()
-        'funky-images'
         """
         return tldextract.extract(self.host).subdomain
 
@@ -309,12 +230,5 @@ class handyurl(object):
     # commented out because of http://bugs.python.org/issue5876
     # "__repr__ returning unicode doesn't work when called implicitly"
     #def __repr__(self):
-    #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s, opaque=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash, self.opaque)
+    #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash)
 
-
-
-# main()
-#_______________________________________________________________________________
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
