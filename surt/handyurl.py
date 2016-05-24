@@ -215,9 +215,7 @@ class handyurl(object):
         """Uses the tldextract module to get the public suffix via the
         Public Suffix List.
         """
-        r = tldextract.extract(self.host)
-        return "%s.%s" % (r.domain, r.tld)
-
+        return tldextract.extract(self.host).registered_domain
 
     # getPublicPrefix
     #___________________________________________________________________________

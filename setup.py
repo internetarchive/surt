@@ -27,7 +27,7 @@ setup(name='surt',
       zip_safe=True,
       install_requires=[
           'six',
-          'tldextract',
+          'tldextract>=2.0',
       ],
       provides=[ 'surt' ],
       packages=[ 'surt' ],
