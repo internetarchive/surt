@@ -256,6 +256,9 @@ def test_stripQuerySessionID():
 
 def test_hostToSURT():
     assert surt.URLRegexTransformer.hostToSURT("www.archive.org") == 'org,archive,www'
+    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910") == '910,78,456,123'
+    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910", reverse_ips=False) == '123.456.78.910'
+    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910", reverse_ips=True) == '910,78,456,123'
 
 def test_surt():
     # These tests are from WaybackURLKeyMakerTest.java
