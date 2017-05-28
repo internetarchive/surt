@@ -68,9 +68,12 @@ def stripQuerySessionID(query):
 
 # hostToSURT
 #_______________________________________________________________________________
-def hostToSURT(host):
-    # TODO: ensure we DONT reverse IP addresses!
+_RE_IP_ADDRESS = re.compile(r"(?:(?:\d{1,3}\.){3}\d{1,3})$")
+
+def hostToSURT(host, reverse_ipaddr=True):
+    if not reverse_ipaddr and _RE_IP_ADDRESS.match(host):
+        return host
+
     parts = host.split('.')
     parts.reverse()
     return ','.join(parts)
-
