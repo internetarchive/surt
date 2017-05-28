@@ -159,7 +159,7 @@ class handyurl(object):
                      surt=False,
                      public_suffix=False,
                      trailing_comma=False,
-                     reverse_ips=True,
+                     reverse_ipaddr=True,
                      **options):
 
         s = self.scheme + ':'
@@ -169,7 +169,7 @@ class handyurl(object):
             if public_suffix:
                 hostSrc = self.getPublicSuffix()
             if surt:
-                hostSrc = hostToSURT(hostSrc, reverse_ips)
+                hostSrc = hostToSURT(hostSrc, reverse_ipaddr)
 
         if hostSrc:
             if self.scheme != 'dns':
@@ -232,4 +232,3 @@ class handyurl(object):
     # "__repr__ returning unicode doesn't work when called implicitly"
     #def __repr__(self):
     #    return u"""handyurl(scheme=%s, authUser=%s, authPass=%s, host=%s, port=%s, path=%s, query=%s, hash=%s)""".encode('utf-8') % (self.scheme, self.authUser, self.authPass, self.host, self.port, self.path, self.query, self.hash)
-

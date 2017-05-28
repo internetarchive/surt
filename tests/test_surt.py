@@ -5,18 +5,20 @@ from __future__ import absolute_import
 import surt
 from surt import handyurl
 
+import pytest
+
 def test_handyurl_parse():
     # These tests come from URLParserTest.java
     assert handyurl.parse("http://www.archive.org/index.html#foo").geturl() == 'http://www.archive.org/index.html#foo'
     assert handyurl.parse("http://www.archive.org/").geturl() == 'http://www.archive.org/'
     assert handyurl.parse("http://www.archive.org").geturl() == 'http://www.archive.org'
-    assert handyurl.parse("http://www.archive.org?").geturl() == 'http://www.archive.org?' 
+    assert handyurl.parse("http://www.archive.org?").geturl() == 'http://www.archive.org?'
     assert handyurl.parse("http://www.archive.org:8080/index.html?query#foo").geturl() == 'http://www.archive.org:8080/index.html?query#foo'
     assert handyurl.parse("http://www.archive.org:8080/index.html?#foo").geturl() == 'http://www.archive.org:8080/index.html#foo'
     assert handyurl.parse("http://www.archive.org:8080?#foo").geturl() == 'http://www.archive.org:8080/#foo'
     assert handyurl.parse(u"http://bücher.ch:8080?#foo").geturl() == u'http://bücher.ch:8080/#foo'
     assert handyurl.parse(u"dns:bücher.ch").geturl() == u'dns:bücher.ch'
-    # XXX assert print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()) == http://b\xfccher.ch:8080/#foo 
+    # XXX assert print(handyurl.parse(u"http://bücher.ch:8080?#foo").geturl()) == http://b\xfccher.ch:8080/#foo
     # XXX assert print(handyurl.parse(u"dns:bücher.ch").geturl()) == dns:b\xfccher.ch
     assert handyurl.parse(u"http://bücher.ch:8080?#foo").geturl() == u"http://b\xfccher.ch:8080/#foo"
     assert handyurl.parse(u"dns:bücher.ch").geturl() == u"dns:b\xfccher.ch"
@@ -254,11 +256,21 @@ def test_stripQuerySessionID():
     url = "?CFID=4308017&CFTOKEN=63914124&requestID=200608200458360%2E39414378"
     assert surt.URLRegexTransformer.stripQuerySessionID(url) == '?requestID=200608200458360%2E39414378'
 
-def test_hostToSURT():
-    assert surt.URLRegexTransformer.hostToSURT("www.archive.org") == 'org,archive,www'
-    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910") == '910,78,456,123'
-    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910", reverse_ips=False) == '123.456.78.910'
-    assert surt.URLRegexTransformer.hostToSURT("123.456.78.910", reverse_ips=True) == '910,78,456,123'
+@pytest.mark.parametrize("host_in,host_out", [
+    ("www.archive.org", ["org,archive,www", "org,archive,www"]),
+    ("123.123.net", ["net,123,123", "net,123,123"]),
+    ("100.100.100.100.org", ["org,100,100,100,100", "org,100,100,100,100"]),
+    ("123.45.167.89", ["89,167,45,123", "123.45.167.89"]),
+    ("10.162.1024.3", ["3,1024,162,10", "3,1024,162,10"]),
+    # any four period-delimited 1-3 digit integers are interpreted as IP address, currently
+    ("990.991.992.993", ["993,992,991,990", "990.991.992.993"])
+])
+def test_hostToSURT(host_in, host_out):
+    h = surt.URLRegexTransformer.hostToSURT
+
+    assert h(host_in) == host_out[0]
+    assert h(host_in, reverse_ipaddr=True) == host_out[0]
+    assert h(host_in, reverse_ipaddr=False) == host_out[1]
 
 def test_surt():
     # These tests are from WaybackURLKeyMakerTest.java
@@ -322,6 +334,15 @@ def test_surt():
     assert surt.surt("warcinfo:foo.warc.gz", trailing_comma=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True, trailing_comma=True) == 'warcinfo:foo.warc.gz'
+
+@pytest.mark.parametrize("url,opts,out", [
+    ("http://www.example.com/", dict(reverse_ipaddr=False), "com,example)/"),
+    ("http://192.168.1.254/info/", {}, "254,1,168,192)/info"),
+    ("http://192.168.1.254/info/", dict(reverse_ipaddr=True), "254,1,168,192)/info"),
+    ("http://192.168.1.254/info/", dict(reverse_ipaddr=False), "192.168.1.254)/info")
+])
+def test_surt_ipaddress(url, opts, out):
+    assert surt.surt(url, **opts) == out
 
 def test_options():
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'

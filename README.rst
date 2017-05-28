@@ -9,7 +9,7 @@ Usage:
     'org,archive)/goo?a=1&a=2&b'
     >>> surt("http://archive.org/goo/?a=2&b&a=1", trailing_comma=True)
     'org,archive,)/goo?a=1&a=2&b'
-    >>> surt("http://123.456.78.910/goo/?a=2&b&a=1", reverse_ips=False)
+    >>> surt("http://123.456.78.910/goo/?a=2&b&a=1", reverse_ipaddr=False)
     '123.456.78.910)/goo?a=1&a=2&b'
 
 Installation:
