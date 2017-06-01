@@ -28,8 +28,8 @@ import re
 # stripPathSessionID
 #_______________________________________________________________________________
 _RES_PATH_SESSIONID = [
-    re.compile("^(.*/)(\((?:[a-z]\([0-9a-z]{24}\))+\)/)([^\?]+\.aspx.*)$", re.I),
-    re.compile("^(.*/)(\\([0-9a-z]{24}\\)/)([^\\?]+\\.aspx.*)$", re.I),
+    re.compile(b"^(.*/)(\((?:[a-z]\([0-9a-z]{24}\))+\)/)([^\?]+\.aspx.*)$", re.I),
+    re.compile(b"^(.*/)(\\([0-9a-z]{24}\\)/)([^\\?]+\\.aspx.*)$", re.I),
     ]
 
 def stripPathSessionID(path):
@@ -47,11 +47,11 @@ def stripPathSessionID(path):
 # stripQuerySessionID
 #_______________________________________________________________________________
 _RES_QUERY_SESSIONID = [
-    re.compile("^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.*)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile("^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
-    re.compile("^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
     ]
 
 def stripQuerySessionID(query):
@@ -68,12 +68,12 @@ def stripQuerySessionID(query):
 
 # hostToSURT
 #_______________________________________________________________________________
-_RE_IP_ADDRESS = re.compile(r"(?:(?:\d{1,3}\.){3}\d{1,3})$")
+_RE_IP_ADDRESS = re.compile(br"(?:(?:\d{1,3}\.){3}\d{1,3})$")
 
 def hostToSURT(host, reverse_ipaddr=True):
     if not reverse_ipaddr and _RE_IP_ADDRESS.match(host):
         return host
 
-    parts = host.split('.')
+    parts = host.split(b'.')
     parts.reverse()
-    return ','.join(parts)
+    return b','.join(parts)
