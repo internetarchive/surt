@@ -247,22 +247,16 @@ class handyurl(object):
 
     # getURLString()
     #___________________________________________________________________________
-    def getURLString(self,
-                     surt=False,
-                     public_suffix=False,
-                     trailing_comma=False,
-                     **options):
-        return self.geturl_bytes(
-                surt, public_suffix, trailing_comma, **options).decode('utf-8')
+    def getURLString(self, **options):
+        return self.geturl_bytes(**options).decode('utf-8')
 
     def geturl_bytes(self,
                      surt=False,
                      public_suffix=False,
                      trailing_comma=False,
                      reverse_ipaddr=True,
+                     with_scheme=True,
                      **options):
-        s = self.scheme + b':'
-
         hostSrc = self.host
         if hostSrc:
             if public_suffix:
@@ -270,13 +264,19 @@ class handyurl(object):
             if surt:
                 hostSrc = hostToSURT(hostSrc, reverse_ipaddr)
 
+        if with_scheme:
+            s = self.scheme + b':'
+            if hostSrc:
+                if self.scheme != b'dns':
+                    s += b'//'
+                if surt:
+                    s += b"("
+        elif not hostSrc:
+            s = self.scheme + b':'
+        else:
+            s = b''
+
         if hostSrc:
-            if self.scheme != b'dns':
-                s += b'//'
-
-            if surt:
-                s += b"("
-
             if self.authUser:
                 s += self.authUser
                 if self.authPass:

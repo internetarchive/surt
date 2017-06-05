@@ -344,6 +344,25 @@ def test_surt():
 def test_surt_ipaddress(url, opts, out):
     assert surt.surt(url, **opts) == out
 
+@pytest.mark.parametrize("burl", [
+        b'http://example.com/'
+        ])
+def test_surt_return_type(burl):
+    """surt.surt() returns the same type of string object (i.e. returns unicode
+    string for unicode string input, and byets for bytes)
+
+    Note this behavior may change in the future versions. This test is for
+    testing compatibility until that happens.
+    """
+    assert isinstance(burl, bytes)
+
+    b = surt.surt(burl)
+    assert type(b) is type(burl)
+
+    uurl = burl.decode('ascii')
+    u = surt.surt(uurl)
+    assert type(u) is type(uurl)
+
 def test_options():
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'

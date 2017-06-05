@@ -52,10 +52,18 @@ class CompositeCanonicalizer(object):
 # surt()
 #_______________________________________________________________________________
 def surt(url, canonicalizer=None, **options):
-    if not url:
-        return "-"
+    if isinstance(url, bytes):
+        return _surt_bytes(url, canonicalizer, **options)
+    else:
+        if url is not None:
+            url = url.encode('utf-8')
+        return _surt_bytes(url, canonicalizer, **options).decode('utf-8')
 
-    if url.startswith("filedesc"):
+def _surt_bytes(url, canonicalizer, **options):
+    if not url:
+        return b"-"
+
+    if url.startswith(b"filedesc"):
         return url
 
     if canonicalizer is None:
@@ -67,17 +75,8 @@ def surt(url, canonicalizer=None, **options):
               hasattr(canonicalizer, 'canonicalize')):
             canonicalizer = canonicalizer.canonicalize
 
-    if 'surt' not in options:
-        options['surt'] = True
+    options.setdefault('surt', True)
+    options.setdefault('with_scheme', False)
 
     hurl = canonicalizer(handyurl.parse(url), **options)
-    key  = hurl.getURLString(**options)
-
-    if not options.get('with_scheme'):
-        parenIdx = key.find('(')
-        if -1 == parenIdx:
-            return url #something very wrong
-        return key[parenIdx+1:]
-    else:
-        return key
-
+    return hurl.geturl_bytes(**options)
