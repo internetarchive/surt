@@ -19,61 +19,6 @@
 #
 #     The surt source is hosted at https://github.com/internetarchive/surt
 
-"""This is a python port of URLRegexTransformer.java:
-http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/archive-commons/src/main/java/org/archive/url/URLRegexTransformer.java?view=markup
-"""
-
-import re
-
-# stripPathSessionID
-#_______________________________________________________________________________
-_RES_PATH_SESSIONID = [
-    re.compile(b"^(.*/)(\((?:[a-z]\([0-9a-z]{24}\))+\)/)([^\?]+\.aspx.*)$", re.I),
-    re.compile(b"^(.*/)(\\([0-9a-z]{24}\\)/)([^\\?]+\\.aspx.*)$", re.I),
-    ]
-
-def stripPathSessionID(path):
-    """It looks like the java version returns a lowercased path..
-    So why does it uses a case-insensitive regex? We won't lowercase here.
-    """
-    for pattern in _RES_PATH_SESSIONID:
-        m = pattern.match(path)
-        if m:
-            path = m.group(1) + m.group(3)
-
-    return path
-
-
-# stripQuerySessionID
-#_______________________________________________________________________________
-_RES_QUERY_SESSIONID = [
-    re.compile(b"^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile(b"^(.*)(?:phpsessid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile(b"^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
-    re.compile(b"^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
-    re.compile(b"^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
-    ]
-
-def stripQuerySessionID(query):
-    for pattern in _RES_QUERY_SESSIONID:
-        m = pattern.match(query)
-        if m:
-            if m.group(2):
-                query = m.group(1) + m.group(2)
-            else:
-                query = m.group(1)
-
-    return query
-
-
-# hostToSURT
-#_______________________________________________________________________________
-_RE_IP_ADDRESS = re.compile(br"(?:(?:\d{1,3}\.){3}\d{1,3})$")
-
-def hostToSURT(host, reverse_ipaddr=True):
-    if not reverse_ipaddr and _RE_IP_ADDRESS.match(host):
-        return host
-
-    parts = host.split(b'.')
-    parts.reverse()
-    return b','.join(parts)
+# just for backward compatibility with existing code expecting these methods here
+from ._surtformat import hostToSURT
+from ._canonicalizer import stripPathSessionID, stripQuerySessionID

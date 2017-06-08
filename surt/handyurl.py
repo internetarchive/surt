@@ -31,8 +31,6 @@ try:
 except:
     from urlparse import SplitResult as SplitResultBytes
 
-from surt.URLRegexTransformer import hostToSURT
-
 _RE_MULTIPLE_PROTOCOLS = re.compile(br'^(https?://)+')
 _RE_HAS_PROTOCOL = re.compile(b"^([a-zA-Z][a-zA-Z0-9\+\-\.]*):")
 _RE_SPACES = re.compile(b'[\n\r\t]')
@@ -62,8 +60,6 @@ class handyurl(object):
     """
     DEFAULT_PORT = None
 
-    # init
-    #___________________________________________________________________________
     def __init__(self, scheme=None, authUser=None, authPass=None,
                  host=None, port=DEFAULT_PORT, path=None,
                  query=None, hash=None, last_delimiter=None):
@@ -164,8 +160,6 @@ class handyurl(object):
                                 m.group(6) or b'', m.group(8) or b'',
                                 m.group(10) or b'')
 
-    # parse() classmethod
-    #___________________________________________________________________________
     @classmethod
     def parse(cls, url):
         u"""This method was in the java URLParser class, but we don't need
@@ -223,9 +217,6 @@ class handyurl(object):
 
         return h
 
-    # addDefaultSchemeIfNeeded()
-    #___________________________________________________________________________
-    """copied from URLParser.java"""
     @classmethod
     def addDefaultSchemeIfNeeded(cls, url):
         if not url:
@@ -237,96 +228,67 @@ class handyurl(object):
         else:
             return b"http://"+url
 
-    # geturl()
-    #___________________________________________________________________________
     def geturl(self):
-        """urlparse.ParseResult has a geturl() method, so we have one too.
-        Nicer than typing the java method name!
+        """Generate regular URL represented by this object.
         """
-        return self.getURLString()
+        return self.geturl_bytes().decode('utf-8')
 
-    # getURLString()
-    #___________________________________________________________________________
-    def getURLString(self, **options):
-        return self.geturl_bytes(**options).decode('utf-8')
+    # Java-compatible method name
+    getURLString = geturl
 
-    def geturl_bytes(self,
-                     surt=False,
-                     public_suffix=False,
-                     trailing_comma=False,
-                     reverse_ipaddr=True,
-                     with_scheme=True,
-                     **options):
-        hostSrc = self.host
-        if hostSrc:
-            if public_suffix:
-                hostSrc = self.getPublicSuffix()
-            if surt:
-                hostSrc = hostToSURT(hostSrc, reverse_ipaddr)
+    def geturl_bytes(self):
+        url = bytearray()
+        e = url.extend
 
-        if with_scheme:
-            s = self.scheme + b':'
-            if hostSrc:
-                if self.scheme != b'dns':
-                    s += b'//'
-                if surt:
-                    s += b"("
-        elif not hostSrc:
-            s = self.scheme + b':'
-        else:
-            s = b''
+        e(self.scheme)
+        e(b':')
 
-        if hostSrc:
+        if self.host:
+            if self.scheme != b'dns':
+                e(b'//')
+
             if self.authUser:
-                s += self.authUser
+                e(self.authUser)
                 if self.authPass:
-                    s += self.authPass
-                s += b'@'
+                    e(self.authPass)
+                e(b'@')
 
-            s += hostSrc
+            e(self.host)
 
             if self.port != self.DEFAULT_PORT:
-                s += (":%d" % self.port).encode('utf-8')
-
-            if surt:
-                if trailing_comma:
-                    s += b','
-                s += b')'
+                e(b':')
+                e(format(self.port).encode('ascii'))
 
         if self.path:
-            s += self.path
+            e(self.path)
         elif self.query is not None or self.hash is not None:
             #must have '/' with query or hash:
-            s += b'/'
+            e(b'/')
 
-        if None != self.query:
-            s += b'?' + self.query
-        if None != self.hash:
-            s += b'#' + self.hash
+        if self.query is not None:
+            e(b'?')
+            e(self.query)
+        if self.hash is not None:
+            e(b'#')
+            e(self.hash)
 
-        if None != self.last_delimiter:
-            s += self.last_delimiter
+        if self.last_delimiter is not None:
+            e(self.last_delimiter)
 
-        return s
+        return bytes(url)
 
-    # getPublicSuffix
-    #___________________________________________________________________________
     def getPublicSuffix(self):
         """Uses the tldextract module to get the public suffix via the
         Public Suffix List.
         """
         return tldextract.extract(self.host).registered_domain.encode('ascii')
 
-    # getPublicPrefix
-    #___________________________________________________________________________
     def getPublicPrefix(self):
         """Uses the tldextract module to get the subdomain, using the
         Public Suffix List.
         """
         return tldextract.extract(self.host).subdomain
 
-    # repr
-    #___________________________________________________________________________
     # commented out because of http://bugs.python.org/issue5876
     # "__repr__ returning unicode doesn't work when called implicitly"
     #def __repr__(self):

@@ -26,10 +26,12 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 from __future__ import absolute_import
 
-from surt.handyurl import handyurl
-from surt.URLRegexTransformer import hostToSURT
+import re
+from functools import partial
 
-import surt.DefaultIAURLCanonicalizer as DefaultIAURLCanonicalizer
+from .handyurl import handyurl
+from ._canonicalizer import DefaultIAURLCanonicalizer
+from . import _surtformat as Format
 
 class CompositeCanonicalizer(object):
     def __init__(self, canonicalizers):
@@ -49,20 +51,15 @@ class CompositeCanonicalizer(object):
         raise AttributeError('canonicalizer must either be callable or have'
                              ' "canonicalizer" method')
 
-# surt()
-#_______________________________________________________________________________
-def surt(url, canonicalizer=None, **options):
-    if isinstance(url, bytes):
-        return _surt_bytes(url, canonicalizer, **options)
-    else:
-        if url is not None:
-            url = url.encode('utf-8')
-        return _surt_bytes(url, canonicalizer, **options).decode('utf-8')
-
-def _surt_bytes(url, canonicalizer, **options):
+def surt(url, **options):
     if not url:
-        return b"-"
+        return "-"
+    if isinstance(url, bytes):
+        return _surt_bytes(url, **options)
+    else:
+        return _surt_bytes(url.encode('utf-8'), **options).decode('utf-8')
 
+def _surt_bytes(url, canonicalizer=None, surt=True, public_suffix=False, **options):
     if url.startswith(b"filedesc"):
         return url
 
@@ -75,8 +72,10 @@ def _surt_bytes(url, canonicalizer, **options):
               hasattr(canonicalizer, 'canonicalize')):
             canonicalizer = canonicalizer.canonicalize
 
-    options.setdefault('surt', True)
-    options.setdefault('with_scheme', False)
-
     hurl = canonicalizer(handyurl.parse(url), **options)
-    return hurl.geturl_bytes(**options)
+    if public_suffix and hurl.host:
+        # probably we can inline handyurl.getPublicSuffix() here and remove the method.
+        hurl.host = hurl.getPublicSuffix()
+
+    fmt = Format.SURT if surt else Format.URL
+    return fmt(**options).format(hurl)

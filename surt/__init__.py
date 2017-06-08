@@ -27,11 +27,11 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 from __future__ import absolute_import
 
-from surt.handyurl import handyurl
-from surt.surt import surt
+from .handyurl import handyurl
+from .surt import surt
+from ._canonicalizer import *
 
-
-__all__= [
+__all__ = [
     'handyurl',
     'surt'
 ]
