@@ -188,11 +188,13 @@ class handyurl(object):
         query    = o.query    or None
         fragment = o.fragment or None
 
-        """Deal with hostnames that end with ':' without being followed by a port number"""
+        # Deal with hostnames that end with ':' without being followed by a port number
         if o.netloc.endswith(b':'):
             o = o._replace(netloc=o.netloc.rstrip(b':'))
         port     = o.port     or None
 
+        # note o.hostname returns lowercased hostname, while o.netloc retains
+        # the original case.
         hostname = o.hostname or None
         path     = o.path     or None
 

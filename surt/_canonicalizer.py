@@ -166,29 +166,20 @@ def stripQuerySessionID(query):
     return query
 
 def alphaReorderQuery(orig):
-    """It's a shame that we can't use urlparse.parse_qsl() for this, but this
-    function does keeps the trailing '=' if there is a query arg with no value:
-    "?foo" vs "?foo=", and we want to exactly match the java version
-    """
-    if None == orig:
-        return None
-
-    if len(orig) <= 1:
+    # We cannot use urlparse.parse_qsl() here because it drops query arguments
+    # without value (i.e. parse_qsl('foo=1&bar=&baz') returns [('foo', '1')]).
+    # We want to keep them as Java version does.
+    if orig is None or len(orig) <= 1:
         return orig
 
     args = orig.split(b'&')
     qas = [tuple(arg.split(b'=', 1)) for arg in args]
     qas.sort()
 
-    s = b''
-    for t in qas:
-        if 1 == len(t):
-            s += t[0] + b'&'
-        else:
-            s += t[0] + b'=' + t[1] + b'&'
-
-    return s[:-1] #remove last &
-
+    return b'&'.join(
+        t[0] if len(t) == 1 else t[0] + b'=' + t[1]
+        for t in qas
+        )
 
 _RE_WWWDIGITS = re.compile(b'www\d*\.')
 
@@ -252,68 +243,108 @@ class GoogleURLCanonicalizer(object):
         return url
 
 class IAURLCanonicalizer(object):
-    @staticmethod
-    def canonicalize(url, host_lowercase=True, host_massage=True,
-                     auth_strip_user=True, auth_strip_pass=True,
-                     port_strip_default=True, path_strip_empty=False,
-                     path_lowercase=True, path_strip_session_id=True,
-                     path_strip_trailing_slash_unless_empty=True,
-                     query_lowercase=True, query_strip_session_id=True,
-                     query_strip_empty=True, query_alpha_reorder=True,
-                     hash_strip=True, **_ignored):
+    def __init__(self, host_lowercase=True, host_massage=True,
+                 auth_strip_user=True, auth_strip_pass=True,
+                 port_strip_default=True, path_strip_empty=False,
+                 path_lowercase=True, path_strip_session_id=True,
+                 path_strip_trailing_slash_unless_empty=True,
+                 query_lowercase=True, query_strip_session_id=True,
+                 query_strip_empty=True, query_alpha_reorder=True,
+                 hash_strip=True, **_ignored):
+        c = []
+        if host_lowercase:
+            c.append(self._host_lowercase)
+        if host_massage:
+            c.append(self._host_massage)
+        if auth_strip_user:
+            c.append(self._auth_strip_user)
+        elif auth_strip_pass:
+            c.append(self._auth_strip_pass)
+        if port_strip_default:
+            c.append(self._port_strip_default)
+        if path_lowercase:
+            c.append(self._path_lowercase)
+        if path_strip_session_id:
+            c.append(self._path_strip_session_id)
+        if path_strip_empty:
+            c.append(self._path_strip_empty)
+        if path_strip_trailing_slash_unless_empty:
+            c.append(self._path_strip_trailing_slash_unless_empty)
+        if query_strip_session_id:
+            c.append(self._query_strip_session_id)
+        if query_lowercase:
+            c.append(self._query_lowercase)
+        if query_alpha_reorder:
+            c.append(self._query_alpha_reorder)
+        if query_strip_empty:
+            c.append(self._query_strip_empty)
+
+        self.canonicalizers = c
+
+    # TODO: these function do not need to be instance methods. move them
+    # to global scope?
+    def _host_lowercase(self, hurl):
+        if hurl.host:
+            hurl.host = hurl.host.lower()
+    def _host_massage(self, hurl):
+        # java version calls massageHost regardless of scheme
+        if hurl.host and hurl.scheme != b'dns':
+            hurl.host = massageHost(hurl.host)
+    def _auth_strip_user(self, hurl):
+        hurl.authUser = None
+        hurl.authPass = None
+    def _auth_strip_pass(self, hurl):
+        hurl.authPath = None
+    def _port_strip_default(self, hurl):
+        if hurl.scheme:
+            defaultPort = getDefaultPort(hurl.scheme)
+            if hurl.port == defaultPort:
+                hurl.port = handyurl.DEFAULT_PORT
+    def _path_lowercase(self, hurl):
+        if hurl.path:
+            hurl.path = hurl.path.lower()
+    def _path_strip_session_id(self, hurl):
+        if hurl.path:
+            hurl.path = stripPathSessionID(hurl.path)
+    def _path_strip_empty(self, hurl):
+        if hurl.path == b'/':
+            hurl.path = None
+    def _path_strip_trailing_slash_unless_empty(self, hurl):
+        path = hurl.path
+        if path and len(path) > 1 and path.endswith(b'/'):
+            hurl.path = hurl.path[:-1]
+    def _query_strip_session_id(self, hurl):
+        if hurl.query:
+            hurl.query = stripQuerySessionID(hurl.query)
+    def _query_lowercase(self, hurl):
+        if hurl.query:
+            hurl.query = hurl.query.lower()
+    def _query_alpha_reorder(self, hurl):
+        if hurl.query:
+            hurl.query = alphaReorderQuery(hurl.query)
+    def _query_strip_empty(self, hurl):
+        # XXX setting last_delimiter=None only when hurl.qury is Nonw
+        # in the first place? this is what the code before refactoring
+        # did, but probably we want to set None for hurl.query == b''
+        # case as well?
+        if hurl.query is None:
+            hurl.last_delimiter = None
+        elif hurl.query == b'':
+            hurl.query = None
+
+    def __call__(self, hurl):
+        for c in self.canonicalizers:
+            c(hurl)
+        return hurl
+
+    @classmethod
+    def canonicalize(clazz, url, **options):
         """
         :parm url: parsed URL
         :type url: :class:`handyurl`
         """
-        if host_lowercase and url.host:
-            url.host = url.host.lower()
-
-        if host_massage and url.host and (url.scheme != b'dns'): ###java version calls massageHost regardless of scheme
-            url.host = massageHost(url.host)
-
-        if auth_strip_user:
-            url.authUser = None
-            url.authPass = None
-        elif auth_strip_pass:
-            url.arthPass = None
-
-        if port_strip_default and url.scheme:
-            defaultPort = getDefaultPort(url.scheme)
-            if url.port == defaultPort:
-                url.port = handyurl.DEFAULT_PORT
-
-        path = url.path
-        if path_strip_empty and b'/' == path:
-            url.path = None
-        else:
-            if path_lowercase and path:
-                path = path.lower()
-            if path_strip_session_id and path:
-                path = stripPathSessionID(path)
-            if path_strip_empty and b'/' == path:
-                path = None
-            if path_strip_trailing_slash_unless_empty and path:
-                if path.endswith(b'/') and len(path)>1:
-                    path = path[:-1]
-
-            url.path = path
-
-        query = url.query
-        if query:
-            if len(query) > 0:
-                if query_strip_session_id:
-                    query = stripQuerySessionID(query)
-                if query_lowercase:
-                    query = query.lower()
-                if query_alpha_reorder:
-                    query = alphaReorderQuery(query)
-            if b'' == query and query_strip_empty:
-                query = None
-            url.query = query
-        else:
-            if query_strip_empty:
-                url.last_delimiter = None
-
+        canonicalizer = clazz(**options)
+        canonicalizer(url)
         return url
 
 class DefaultIAURLCanonicalizer(object):

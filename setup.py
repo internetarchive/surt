@@ -33,7 +33,10 @@ setup(name='surt',
       packages=[ 'surt' ],
       scripts=[],
       # Tests
-      tests_require=[ 'pytest', 'pytest-cov' ],
+      tests_require=[
+           'pytest>=3.1',
+           'pytest-cov'
+      ],
       test_suite='',
       cmdclass={'test': PyTest},
      )

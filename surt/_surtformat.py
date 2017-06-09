@@ -23,24 +23,30 @@ from functools import partial
 #_______________________________________________________________________________
 _RE_IP_ADDRESS = re.compile(br"(?:(?:\d{1,3}\.){3}\d{1,3})$")
 
+# unused - kept for backward compatibility just in case someone's using this.
 def hostToSURT(host, reverse_ipaddr=True):
-    if not reverse_ipaddr and _RE_IP_ADDRESS.match(host):
-        return host
+    return _host_to_surt(host, reverse_ipaddr=reverse_ipaddr)[0]
 
+def _host_to_surt(host, trailing_comma=False, reverse_ipaddr=True):
+    """Return SURT-fied host and trailing character to be appended to
+    the authority part.
+    """
+    if _RE_IP_ADDRESS.match(host):
+        if not reverse_ipaddr:
+            return host, b''
+        trailer = b''
+    else:
+        trailer = b',' if trailing_comma else b''
     parts = host.split(b'.')
     parts.reverse()
-    return b','.join(parts)
+    return b','.join(parts), trailer
 
 class SURT(object):
     def __init__(self, with_scheme=False, trailing_comma=False, reverse_ipaddr=True, **options):
         """Traditional SURT Format.
         """
         self.with_scheme = with_scheme
-        self.trailing_comma = trailing_comma
-        if reverse_ipaddr:
-            self.host_to_surt = hostToSURT
-        else:
-            self.host_to_surt = partial(hostToSURT, reverse_ipaddr=False)
+        self.host_to_surt = partial(_host_to_surt, trailing_comma=trailing_comma, reverse_ipaddr=reverse_ipaddr)
 
     def format(self, hurl):
         """Generate SURT from `hurl`.
@@ -68,12 +74,13 @@ class SURT(object):
                 if hurl.authPass:
                     e(hurl.authPass)
                 e(b'@')
-            e(self.host_to_surt(hurl.host))
+            shost, trailer = self.host_to_surt(hurl.host)
+            e(shost)
             if hurl.port != hurl.DEFAULT_PORT:
                 e(b':')
                 e(format(hurl.port).encode('ascii'))
-            if self.trailing_comma:
-                e(b',')
+            if trailer:
+                e(trailer)
             e(b')')
         # TODO: path should be normalized
         if hurl.path:
@@ -92,9 +99,9 @@ class SURT(object):
 
         return bytes(surt)
 
-class URL(object):
+class URI(object):
     def __init__(self, **options):
-        """URL format - identical to :meth:`~surt.handyurl.geturl_bytes`
+        """Plain URI format - identical to :meth:`~surt.handyurl.geturl_bytes`
         """
         pass
     def format(self, hurl):

@@ -6,15 +6,19 @@ import surt._canonicalizer as canonicalizer
 
 import pytest
 
-def test_DefaultIAURLCanonicalizer():
-    # These tests are from DefaultIAURLCanonicalizerTest.java
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://www.alexa.com/")).getURLString() == 'http://alexa.com/'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://archive.org/index.html")).getURLString() == 'http://archive.org/index.html'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://archive.org/index.html?")).getURLString() == 'http://archive.org/index.html'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://archive.org/index.html?a=b")).getURLString() == 'http://archive.org/index.html?a=b'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://archive.org/index.html?b=b&a=b")).getURLString() == 'http://archive.org/index.html?a=b&b=b'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://archive.org/index.html?b=a&b=b&a=b")).getURLString() == 'http://archive.org/index.html?a=b&b=a&b=b'
-    assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse("http://www34.archive.org/index.html?b=a&b=b&a=b")).getURLString() == 'http://archive.org/index.html?a=b&b=a&b=b'
+@pytest.mark.parametrize("url_in,url_out", [
+    ("http://www.alexa.com/", 'http://alexa.com/'),
+    ("http://archive.org/index.html", 'http://archive.org/index.html'),
+    ("http://archive.org/index.html?", 'http://archive.org/index.html'),
+    ("http://archive.org/index.html?a=b", 'http://archive.org/index.html?a=b'),
+    ("http://archive.org/index.html?b=b&a=b", 'http://archive.org/index.html?a=b&b=b'),
+    ("http://archive.org/index.html?b=a&b=b&a=b", 'http://archive.org/index.html?a=b&b=a&b=b'),
+    ("http://www34.archive.org/index.html?b=a&b=b&a=b", 'http://archive.org/index.html?a=b&b=a&b=b')
+])
+def test_DefaultIAURLCanonicalizer(url_in, url_out):
+    hurl = handyurl.parse(url_in)
+    surt.DefaultIAURLCanonicalizer.canonicalize(hurl)
+    assert hurl.geturl() == url_out
 
 def test_GoogleURLCanonicalizer():
     # The tests are copied from GoogleURLCanonicalizerTest.java
