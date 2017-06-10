@@ -99,6 +99,58 @@ class SURT(object):
 
         return bytes(surt)
 
+class SSURT(object):
+    def __init__(self, **options):
+        pass
+
+    def format(self, hurl):
+        ssurt = bytearray()
+        e = ssurt.extend
+
+        # XXX handyurl parses hostname part of URI as path
+        if hurl.scheme == b'dns':
+            host = hurl.path
+            path = None
+        else:
+            host = hurl.host
+            path = hurl.path
+        if host:
+            shost, trailer = _host_to_surt(
+                host, reverse_ipaddr=False, trailing_comma=True)
+            if trailer:
+                e(b'(')
+            e(shost)
+            if trailer:
+                e(trailer)
+                e(b')')
+        if hurl.port:
+            e(b':')
+            e(format(hurl.port).encode('ascii'))
+        if hurl.host and hurl.scheme != b'dns':
+            e(b'//')
+        e(b':')
+        e(hurl.scheme)
+        e(b':')
+        if hurl.authUser:
+            e(hurl.authUser)
+            if hurl.authPass:
+                e(hurl.authPass)
+            e(b'@')
+        if path:
+            e(path)
+        elif hurl.query is not None or hurl.hash is not None:
+            e(b'/')
+        if hurl.query is not None:
+            e(b'?')
+            e(hurl.query)
+        if hurl.hash is not None:
+            e(b'#')
+            e(hurl.hash)
+        if hurl.last_delimiter is not None:
+            e(hurl.last_eliminter)
+
+        return bytes(ssurt)
+
 class URI(object):
     def __init__(self, **options):
         """Plain URI format - identical to :meth:`~surt.handyurl.geturl_bytes`

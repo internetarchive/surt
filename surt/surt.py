@@ -61,7 +61,10 @@ class Transformer(object):
         if public_suffix:
             self.canonicalizers.append(_public_suffix)
         if surt:
-            self.fmt = Format.SURT(**options)
+            if surt == 'ssurt':
+                self.fmt = Format.SSURT(**options)
+            else:
+                self.fmt = Format.SURT(**options)
         else:
             self.fmt = Format.URI(**options)
 

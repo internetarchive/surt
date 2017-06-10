@@ -170,3 +170,13 @@ def test_surt_return_type(burl):
     uurl = burl.decode('ascii')
     u = surt.surt(uurl)
     assert type(u) is type(uurl)
+
+@pytest.mark.parametrize("url_in,ssurt_out", [
+    # currently "user:pass@" is dropped by handyurl.parse()
+    ("http://user:passwd@www.example.com:8443/img/logo.jpg", "(com,example,):8443//:http:/img/logo.jpg"),
+    ("dns:archive.org", "(org,archive,):dns:"),
+    ("https://192.168.10.1:8080/", "192.168.10.1:8080//:https:/")
+])
+def test_surt_format_ssurt(url_in, ssurt_out):
+    s = surt.surt(url_in, surt='ssurt')
+    assert s == ssurt_out
