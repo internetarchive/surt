@@ -19,17 +19,26 @@
 import re
 from functools import partial
 
-# hostToSURT
-#_______________________________________________________________________________
 _RE_IP_ADDRESS = re.compile(br"(?:(?:\d{1,3}\.){3}\d{1,3})$")
 
 # unused - kept for backward compatibility just in case someone's using this.
 def hostToSURT(host, reverse_ipaddr=True):
+    """DEPRECATED: This function is no longer used by ``surt``.
+    It is retained for backward compatibility just in case someone's using it.
+
+    :param host: host name to be SURT-ified.
+    :param reverse_ipaddr: if ``False``, SURT-ify even IPv4 address.
+    """
     return _host_to_surt(host, reverse_ipaddr=reverse_ipaddr)[0]
 
 def _host_to_surt(host, trailing_comma=False, reverse_ipaddr=True):
     """Return SURT-fied host and trailing character to be appended to
     the authority part.
+
+    :param host: host name to be SURT-ified.
+    :param trailing_comma: if ``False``, omit trailing comma
+    :param reverse_ipaddr: if ``True``, SURT-ify even IPv4 address.
+    :rtype: tuple
     """
     if _RE_IP_ADDRESS.match(host):
         if not reverse_ipaddr:
@@ -44,6 +53,14 @@ def _host_to_surt(host, trailing_comma=False, reverse_ipaddr=True):
 class SURT(object):
     def __init__(self, with_scheme=False, trailing_comma=False, reverse_ipaddr=True, **options):
         """Traditional SURT Format.
+
+        Note that customization parameter arguments have unconventional defaults.
+        Combination of ``with_scheme=True``, ``trailing_comma=True``,
+        ``reverse_ipaddr=False`` gives conventional SURT format.
+
+        :param with_scheme: if ``False``, omit scheme part, ex. ``http://(``
+        :param trailing_comma: if ``False``, omit trailing comma (``,``) of hostname part.
+        :param reverse_ipaddr: if ``True``, SURT-ify even IPv4 address.
         """
         self.with_scheme = with_scheme
         self.host_to_surt = partial(_host_to_surt, trailing_comma=trailing_comma, reverse_ipaddr=reverse_ipaddr)
@@ -101,13 +118,18 @@ class SURT(object):
 
 class SSURT(object):
     def __init__(self, **options):
+        """SSURT (Superior SURT) format.
+        This version is highly experimental. Not ready for serious use.
+
+        :param options: customization options.
+        """
         pass
 
     def format(self, hurl):
         ssurt = bytearray()
         e = ssurt.extend
 
-        # XXX handyurl parses hostname part of URI as path
+        # XXX handyurl parses hostname part of dns: URI as path
         if hurl.scheme == b'dns':
             host = hurl.path
             path = None

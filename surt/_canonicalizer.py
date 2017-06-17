@@ -200,6 +200,10 @@ def getDefaultPort(scheme):
         return 0
 
 class GoogleURLCanonicalizer(object):
+    """canonicalizer based on Google Safe Browser API usage guide.
+
+    Reference: https://developers.google.com/safe-browsing/v4/urls-hashing
+    """
     @staticmethod
     def canonicalize(url, **_ignored):
         """
@@ -323,7 +327,7 @@ class IAURLCanonicalizer(object):
         if hurl.query:
             hurl.query = alphaReorderQuery(hurl.query)
     def _query_strip_empty(self, hurl):
-        # XXX setting last_delimiter=None only when hurl.qury is Nonw
+        # XXX setting last_delimiter=None only when hurl.qury is None
         # in the first place? this is what the code before refactoring
         # did, but probably we want to set None for hurl.query == b''
         # case as well?
