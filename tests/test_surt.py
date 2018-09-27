@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import surt
 from surt import handyurl
@@ -334,6 +334,19 @@ def test_surt():
     assert surt.surt("warcinfo:foo.warc.gz", trailing_comma=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True) == 'warcinfo:foo.warc.gz'
     assert surt.surt("warcinfo:foo.warc.gz", with_scheme=True, trailing_comma=True) == 'warcinfo:foo.warc.gz'
+
+@pytest.mark.xfail(reason="a bug not yet fixed for compatibility concern")
+def test_surt_query():
+    assert surt.surt("http://example.com/script?type=a+b+%26+c&grape=wine") \
+        == "com,example)/script?grape=wine&type=a+b+%26+c"
+
+@pytest.mark.parametrize("url,out", [
+    ("http://example.com/app?item=Wroc%C5%82aw",
+     "com,example)/app?item=wroc%c5%82aw")
+])
+def test_surt_nonascii(url, out):
+    """non-ASCII %-encoded in unicode string input"""
+    assert surt.surt(url) == out
 
 @pytest.mark.parametrize("url,opts,out", [
     ("http://www.example.com/", dict(reverse_ipaddr=False), "com,example)/"),
