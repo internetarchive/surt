@@ -44,7 +44,7 @@ def stripPathSessionID(path):
     return path
 
 
-# stripQuerySessionID
+# stripQuerySessionID and Google Analytics parameters
 #_______________________________________________________________________________
 _RES_QUERY_SESSIONID = [
     re.compile(b"^(.*)(?:jsessionid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
@@ -52,8 +52,15 @@ _RES_QUERY_SESSIONID = [
     re.compile(b"^(.*)(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", re.I),
     re.compile(b"^(.*)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$", re.I),
     re.compile(b"^(.*)(?:cfid=[^&]+&cftoken=[^&]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_source=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_campaign=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_term=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_content=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_medium=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_social=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_social-type=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
+    re.compile(b"^(.*)(?:utm_brand=[0-9a-zA-Z\.]+)(?:&(.*))?$", re.I),
     ]
-
 def stripQuerySessionID(query):
     for pattern in _RES_QUERY_SESSIONID:
         m = pattern.match(query)

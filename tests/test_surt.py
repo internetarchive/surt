@@ -256,6 +256,18 @@ def test_stripQuerySessionID():
     url = b"?CFID=4308017&CFTOKEN=63914124&requestID=200608200458360%2E39414378"
     assert surt.URLRegexTransformer.stripQuerySessionID(url) == b'?requestID=200608200458360%2E39414378'
 
+
+@pytest.mark.parametrize("q1, q2", [
+    (b"?s=1&utm_source=foo.com", b"?s=1&"),
+    (b"?utm_campaign=213&x=abc", b"?x=abc"),
+    (b"?a=1&utm_medium=ggg&b=2", b"?a=1&b=2"),
+    (b"?utm_term=t&utm_content=vv&utm_social=facebook", b"?"),
+    (b"?utm_social-type=ff&x=5&utm_brand=x", b"?x=5&")
+    ])
+def test_strip_google_analytics(q1, q2):
+    assert surt.URLRegexTransformer.stripQuerySessionID(q1) == q2
+
+
 @pytest.mark.parametrize("host_in,host_out", [
     (b"www.archive.org", [b"org,archive,www", b"org,archive,www"]),
     (b"123.123.net", [b"net,123,123", b"net,123,123"]),
