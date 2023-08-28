@@ -284,7 +284,11 @@ def test_surt():
     assert surt.surt("dns:alexa.com") == 'dns:alexa.com'
     assert surt.surt("dns:archive.org") == 'dns:archive.org'
 
+    assert surt.surt("http://www1234.com/") == 'com,www1234)/'
     assert surt.surt("http://www.archive.org/") == 'org,archive)/'
+    assert surt.surt("https://www.archive.org/") == 'org,archive)/'
+    assert surt.surt("http://www1.archive.org/") == 'org,archive)/'
+    assert surt.surt("http://www1.www.archive.org/") == 'org,archive,www)/'
     assert surt.surt("http://archive.org/") == 'org,archive)/'
     assert surt.surt("http://archive.org/goo/") == 'org,archive)/goo'
     assert surt.surt("http://archive.org/goo/?") == 'org,archive)/goo'
@@ -362,7 +366,7 @@ def test_surt_ipaddress(url, opts, out):
         ])
 def test_surt_return_type(burl):
     """surt.surt() returns the same type of string object (i.e. returns unicode
-    string for unicode string input, and byets for bytes)
+    string for unicode string input, and bytes for bytes)
 
     Note this behavior may change in the future versions. This test is for
     testing compatibility until that happens.

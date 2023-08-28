@@ -124,12 +124,12 @@ def alphaReorderQuery(orig):
 
 # massageHost()
 #_______________________________________________________________________________
-_RE_WWWDIGITS = re.compile(b'www\d*\.')
+_RE_WWWDIGITS = re.compile(rb'(www\d*\.).+\.')
 
 def massageHost(host):
     m = _RE_WWWDIGITS.match(host)
     if m:
-        return host[len(m.group(0)):]
+        return host[len(m.group(1)):]
     else:
         return host
 
