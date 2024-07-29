@@ -1,0 +1,17 @@
+[project]
+name = "surt"
+version = "0.3.1"
+description = "Sort-friendly URI Reordering Transform (SURT) python package."
+authors = [
+    {name = "rajbot", email = "raj@archive.org"}
+]
+license = {text = "GNU Affero General Public License v3"}
+readme = "README.md"
+dependencies = [
+  "six",
+  "tldextract>=2.0"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
