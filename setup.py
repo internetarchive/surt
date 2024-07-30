@@ -1,18 +1,4 @@
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
-
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_suite = True
-
-    def run_tests(self):
-        import pytest
-        import sys
-        cmdline = ' -v --cov surt tests/'
-        errcode = pytest.main(cmdline)
-        sys.exit(errcode)
-
 
 setup(name='surt',
       version='0.3.1',
@@ -35,5 +21,4 @@ setup(name='surt',
       # Tests
       tests_require=[ 'pytest', 'pytest-cov' ],
       test_suite='',
-      cmdclass={'test': PyTest},
      )
