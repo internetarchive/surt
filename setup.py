@@ -1,25 +1,27 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
+
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_suite = True
 
     def run_tests(self):
-        import pytest
         import sys
+
+        import pytest
         cmdline = ' -v --cov surt tests/'
         errcode = pytest.main(cmdline)
         sys.exit(errcode)
 
 
 setup(name='surt',
-      version='0.3.1',
+      version='0.3.2',
       author='rajbot',
       author_email='raj@archive.org',
       classifiers=[
-        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: GNU General Public License v3',
       ],
       description='Sort-friendly URI Reordering Transform (SURT) python package.',
       long_description=open('README.rst').read(),

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(c)2012-2013 Internet Archive. Software license AGPL version 3.
+# Copyright(c)2012-2013 Internet Archive. Software license GPL version 3.
 #
 # This file is part of the `surt` python package.
 #
 #     surt is free software: you can redistribute it and/or modify
-#     it under the terms of the GNU Affero General Public License as published by
+#     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
 #
 #     surt is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU Affero General Public License for more details.
+#     GNU General Public License for more details.
 #
-#     You should have received a copy of the GNU Affero General Public License
+#     You should have received a copy of the GNU General Public License
 #     along with surt.  If not, see <http://www.gnu.org/licenses/>.
 #
 #     The surt source is hosted at https://github.com/internetarchive/surt
@@ -26,18 +26,20 @@ http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-ac
 
 from __future__ import absolute_import
 
-import re
-import struct
-import socket
 import encodings.idna
+import re
+import socket
+import struct
 
 from surt.handyurl import handyurl
 
 try:
     from urllib.parse import quote_from_bytes, unquote_to_bytes
 except:
-    from urllib import quote as quote_from_bytes, unquote as unquote_to_bytes
-from six import text_type, binary_type
+    from urllib import quote as quote_from_bytes
+    from urllib import unquote as unquote_to_bytes
+from six import binary_type, text_type
+
 
 # canonicalize()
 #_______________________________________________________________________________
