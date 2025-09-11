@@ -34,7 +34,7 @@ except:
 from surt.URLRegexTransformer import hostToSURT
 
 _RE_MULTIPLE_PROTOCOLS = re.compile(br'^(https?://)+')
-_RE_HAS_PROTOCOL = re.compile(b"^([a-zA-Z][a-zA-Z0-9\+\-\.]*):")
+_RE_HAS_PROTOCOL = re.compile(br"^([a-zA-Z][a-zA-Z0-9\+\-\.]*):")
 _RE_SPACES = re.compile(b'[\n\r\t]')
 
 class handyurl(object):
