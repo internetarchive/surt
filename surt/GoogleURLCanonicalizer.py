@@ -140,6 +140,8 @@ def attemptIPFormats(host):
         m = DECIMAL_IP.match(host)
         if m:
             try:
+                if isinstance(host, bytes):
+                    host = host.decode('utf-8')
                 return socket.gethostbyname_ex(host)[2][0].encode('ascii')
             except (socket.gaierror, socket.herror):
                 return None
@@ -147,6 +149,8 @@ def attemptIPFormats(host):
             m = OCTAL_IP.match(host)
             if m:
                 try:
+                    if isinstance(host, bytes):
+                        host = host.decode('utf-8')
                     return socket.gethostbyname_ex(host)[2][0].encode('ascii')
                 except socket.gaierror:
                     return None
