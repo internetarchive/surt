@@ -3,13 +3,20 @@ name = "surt"
 version = "0.3.1"
 description = "Sort-friendly URI Reordering Transform (SURT) python package."
 authors = [
-    {name = "rajbot", email = "raj@archive.org"}
+    { name = "rajbot", email = "raj@archive.org" }
 ]
-license = {text = "GNU Affero General Public License v3"}
+license = "AGPL-3.0-or-later"
 readme = "README.md"
 dependencies = [
   "six",
   "tldextract>=2.0"
+]
+requires-python = ">= 3.3"
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-cov"
 ]
 
 [build-system]
