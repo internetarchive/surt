@@ -376,8 +376,20 @@ def test_surt_return_type(burl):
     u = surt.surt(uurl)
     assert type(u) is type(uurl)
 
+
+def test_unescape_encoding():
+    # percent encoding, utf-8 encoded characters
+    assert surt.surt("http://example.com/city-of-M%C3%BCnchen.html") == 'com,example)/city-of-m%c3%bcnchen.html'
+    # percent encoding, latin-1 encoded characters (pre-RFC3986)
+    assert surt.surt("http://example.com/city-of-M%FCnchen.html") == 'com,example)/city-of-m%fcnchen.html'
+    assert surt.surt("http://www.aluroba.com/tags/%C3%CE%CA%C7%D1%E5%C7.htm") == 'com,aluroba)/tags/%c3%ce%ca%c7%d1%e5%c7.htm'
+    assert surt.surt("https://1kr.ua/newslist.html?tag=%E4%EE%F8%EA%EE%EB%FC%ED%EE%E5") == 'ua,1kr)/newslist.html?tag=%e4%ee%f8%ea%ee%eb%fc%ed%ee%e5'
+
+
 def test_options():
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
     assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
     assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
+
+
