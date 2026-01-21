@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright(c)2012-2013 Internet Archive. Software license AGPL version 3.
 #
 # This file is part of the `surt` python package.
