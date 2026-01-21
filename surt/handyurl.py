@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(c)2012-2013 Internet Archive. Software license AGPL version 3.
+# Copyright(c)2012-2023 Internet Archive. Software license AGPL version 3.
 #
 # This file is part of the `surt` python package.
 #
@@ -230,6 +230,9 @@ class handyurl(object):
     def addDefaultSchemeIfNeeded(cls, url):
         if not url:
             return url
+
+        if not isinstance(url, bytes):
+            url = url.encode('utf-8')
 
         ###noah: accept anything that looks like it starts with a scheme:
         if _RE_HAS_PROTOCOL.match(url):
