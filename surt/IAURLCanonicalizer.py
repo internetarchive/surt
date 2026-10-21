@@ -51,7 +51,7 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
         url.authUser = None
         url.authPass = None
     elif auth_strip_pass:
-        url.arthPass = None
+        url.authPass = None
 
     if port_strip_default and url.scheme:
         defaultPort = getDefaultPort(url.scheme)
