@@ -97,8 +97,8 @@ class handyurl(object):
     The following line is the regular expression for breaking-down a URI
     reference into its components.
 
-    ^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?
-     12            3  4          5       6  7        8 9
+    ^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?
+     12            3  4          5       6   7        8 9
 
     The numbers in the second line above are only to assist readability;
     they indicate the reference points for each subexpression (i.e., each

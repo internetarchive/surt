@@ -165,7 +165,7 @@ def escapeOnce(input):
     """escape everything outside of 32-128, except #"""
     if input:
         return quote_from_bytes(
-                input, safe=b'''!"$&'()*+,-./:;<=>?@[\]^_`{|}~''').encode(
+                input, safe=br'''!"$&'()*+,-./:;<=>?@[\]^_`{|}~''').encode(
                         'ascii')
     else:
         return input
