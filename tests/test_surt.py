@@ -381,3 +381,19 @@ def test_options():
     assert surt.IAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
     assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y')).getURLString() == 'http://example.com/foo?x=y'
     assert surt.DefaultIAURLCanonicalizer.canonicalize(handyurl.parse('http://example.com/foo?X=Y'), query_lowercase=False).getURLString() == 'http://example.com/foo?X=Y'
+
+@pytest.mark.parametrize("url,out", [
+    ("https://example.com:80/", "com,example)/"),
+    ("http://example.com:443/", "com,example)/")
+])
+def test_surt_mismatched_port(url, out):
+    """When strict_port_match=False, port 80 and 443 shall be treated
+    interchangeably for HTTP/S, so that both https://example.com:80/ and
+    http://example.com:443/ are transformed to com,example)/.
+    We found many cases of http: URLs with port number 80 that seems to be
+    created by error. Such captures leads to confusion in query and rule
+    matching when protocol is ignored in indexing.
+    (new in v0.3.2)
+    """
+    urlkey = surt.surt(url, with_scheme=False, strict_port_match=False)
+    assert urlkey == out

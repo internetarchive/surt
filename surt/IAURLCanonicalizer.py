@@ -39,7 +39,7 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
                  path_strip_trailing_slash_unless_empty=True,
                  query_lowercase=True, query_strip_session_id=True,
                  query_strip_empty=True, query_alpha_reorder=True,
-                 hash_strip=True, **_ignored):
+                 hash_strip=True, strict_port_match=True, **_ignored):
     """The input url is a handyurl instance"""
     if host_lowercase and url.host:
         url.host = url.host.lower()
@@ -54,8 +54,8 @@ def canonicalize(url, host_lowercase=True, host_massage=True,
         url.arthPass = None
 
     if port_strip_default and url.scheme:
-        defaultPort = getDefaultPort(url.scheme)
-        if url.port == defaultPort:
+        defaultPorts = scheme_default_ports(url.scheme, strict_port_match)
+        if url.port in defaultPorts:
             url.port = handyurl.DEFAULT_PORT
 
     path = url.path
@@ -136,6 +136,12 @@ def massageHost(host):
 # getDefaultPort()
 #_______________________________________________________________________________
 def getDefaultPort(scheme):
+    """return default port number of `scheme, if known.
+    return 0 if unknown or we don't care.
+
+    Superceded  by :func:`scheme_default_ports` below. Retained for
+    maintaining module compatibility.
+    """
     scheme_lower = scheme.lower()
     if b'http' == scheme_lower:
         return 80
@@ -144,3 +150,12 @@ def getDefaultPort(scheme):
     else:
         return 0
 
+def scheme_default_ports(scheme, strict_match=True):
+    #  type: (bytes, bool) -> tuple[int]
+    scheme_lower = scheme.lower()
+    if b'http' == scheme_lower:
+        return (80,) if strict_match else (80, 443)
+    elif b'https' == scheme_lower:
+        return (443,) if strict_match else (80, 443)
+    else:
+        return ()
